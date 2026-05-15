@@ -1,8 +1,8 @@
 # 🤖 飞书 AI 记账
 
-用自然语言记账的 Android App，数据存在飞书多维表格里，AI 帮你记、帮你算、帮你看。
+<img src="assets/images/icon.png" width="120" height="120" align="center" />
 
-![记账 App 主界面](assets/images/screenshot1.jpg)
+用自然语言记账的 Android App，数据存在飞书多维表格里，AI 帮你记、帮你算、帮你看。
 
 ---
 
@@ -22,7 +22,8 @@
 
 ## 📱 界面预览
 
-![记账统计](assets/images/screenshot2.jpg)
+<img src="assets/images/screenshot1.jpg" width="300" />
+<img src="assets/images/screenshot2.jpg" width="300" />
 
 ---
 
@@ -30,21 +31,37 @@
 
 > **Android 用户直接安装，无需任何配置**
 
-**[📦 点击下载 APK](assets/app-release.apk)**（3.9 MB）
+**[📦 点击下载 APK](https://github.com/NaeemTC/ai-assistant-accounting/releases/latest/download/app-release.apk)**（3.9 MB）
 
-安装后打开 App，绑定你的飞书多维表格（配置教程见下方「配置飞书」），即可开始使用。
-
-> 如果无法直接下载，请访问 [Releases 页面](https://github.com/NaeemTC/ai-assistant-accounting/releases) 下载最新版本。
+> 如果链接失效，请访问 [Releases 页面](https://github.com/NaeemTC/ai-assistant-accounting/releases) 下载最新版本。
 
 ---
 
-## ⚙️ 配置飞书（AI 自动引导）
+## 🔧 安装 Skill（给 AI 助手用）
+
+如果你有自己的 AI 助手（基于 Hermes Agent），可以安装记账 Skill，让 AI 帮你完成飞书配置和日常记账：
+
+```bash
+# 把 skill 目录复制到 AI 助手的数据目录
+cp -r skills/feishu-accounting ~/.hermes/skills/
+
+# 配置环境变量（在 ~/.bashrc 里加）
+export FEISHU_BASE_TOKEN="你的base_token"
+export FEISHU_DETAIL_TABLE_ID="你的明细表ID"
+export FEISHU_SUMMARY_TABLE_ID="你的汇总表ID"
+```
+
+详细配置说明见 [feishu-accounting/SKILL.md](skills/feishu-accounting/SKILL.md)。
+
+---
+
+## ⚙️ 配置飞书
 
 本 App 的数据存在飞书多维表格里，需要配置飞书应用才能使用。
 
 ### 方式一：让 AI 帮你一键配置（推荐）
 
-如果你有一个 AI 助手（基于 Hermes Agent），直接对它说：
+直接对 AI 助手说：
 
 ```
 我想用飞书记账
@@ -90,8 +107,7 @@ ai-assistant-accounting/
 │       └── references/
 │           └── categories.md   # 分类关键词参考
 ├── assets/
-│   ├── images/              # App 截图
-│   └── app-release.apk      # 最新 APK
+│   └── images/              # App 截图 + 图标
 └── README.md
 ```
 
@@ -108,18 +124,6 @@ npm install
 npx cap sync android
 npx cap build android
 # APK 输出到 android/app/build/outputs/apk/release/app-release.apk
-```
-
-### 安装 Skill（给 AI 助手用）
-
-```bash
-# 把 skill 目录复制到 AI 助手的数据目录
-cp -r skills/feishu-accounting ~/.hermes/skills/
-
-# 配置环境变量（在 ~/.bashrc 里加）
-export FEISHU_BASE_TOKEN="你的base_token"
-export FEISHU_DETAIL_TABLE_ID="你的明细表ID"
-export FEISHU_SUMMARY_TABLE_ID="你的汇总表ID"
 ```
 
 ---
