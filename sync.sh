@@ -6,10 +6,10 @@ echo ">>> npx cap sync android"
 npx cap sync android
 
 echo ">>> 修复 capacitor.plugins.json（cap sync 会将其重置为空数组）"
+# Capacitor runtime 要求 classpath 字段指向插件的完全限定类名
 PLUGIN_JSON='[
   {
-    "id": "FeishuApi",
-    "sdk": "FeishuApi"
+    "classpath": "com.feishu.dashboard.FeishuApiPlugin"
   }
 ]'
 echo "$PLUGIN_JSON" > android/app/src/main/assets/capacitor.plugins.json

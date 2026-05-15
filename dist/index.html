@@ -204,7 +204,7 @@ function nativeReq(url,method,headers,body){
     if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.FeishuApi){
       window.Capacitor.Plugins.FeishuApi.request({url:url,method:method||'GET',headers:headers||{},body:body||null})
         .then(function(r){ok(JSON.parse(r.body))})
-        .catch(function(e){fail(new Error('原生插件错误: '+e)});
+        .catch(function(e){fail(new Error('原生插件错误: '+e))});
       return;
     }
     // Fallback：浏览器原生 fetch（受CORS限制，调试用）
@@ -523,15 +523,6 @@ document.getElementById('btn-login').addEventListener('click',function(){
 // ═══ 初始化 ═══
 function init(){
   loadConfig();
-  // 启动诊断
-  var capStatus='Capacitor='+(typeof window.Capacitor!=='undefined'?'✓':'✗');
-  if(window.Capacitor){
-    capStatus+=' Plugins='+(window.Capacitor.Plugins?'✓':'✗');
-    capStatus+=' FeishuApi='+(window.Capacitor.Plugins&&window.Capacitor.Plugins.FeishuApi?'✓':'✗');
-    capStatus+=' version='+(window.Capacitor.CAP_VERSION||'unknown');
-    capStatus+=' platform='+(window.Capacitor.platform||'unknown');
-  }
-  console.log('[记账] '+capStatus);
   // 检查是否已有完整凭证
   if(!APP_ID||!APP_SECRET||!BASE||!DETAIL_TABLE||!SUMMARY_TABLE){
     showLogin();
