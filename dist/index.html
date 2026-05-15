@@ -271,6 +271,7 @@ function getMonthSummary(month){
     var r=summaryRecords[i];
     if(month&&r[SI.month]!==month)continue;
     var type=r[SI.type]||'';
+    if(Array.isArray(type))type=type[0]||'';
     var amt=r[SI.amount]||0;
     if(type==='支出')exp+=amt;
     else if(type==='收入')inc+=amt;
