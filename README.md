@@ -6,6 +6,21 @@
 
 ---
 
+## 🌟 项目优势
+
+| 优势 | 说明 |
+|------|------|
+| 🖥️ **零服务器** | 不需要买云服务器，所有数据存在飞书多维表格里 |
+| 📱 **只装一个 APK** | Android 用户直接装 APK，无需配置任何环境 |
+| 🤖 **AI 全自动** | 告诉 AI「记账」两个字，剩下的交给 AI：自动分类、自动同步、自动统计 |
+| 🔧 **AI 帮你配置** | 飞书多维表格的创建、字段配置、权限开通，全部由 AI 自动引导完成 |
+| 📊 **飞书即后台** | 飞书多维表格就是你的数据后台，在手机 App 和网页端都能看 |
+| 🔒 **数据自主可控** | 数据存在自己的飞书里，不依赖任何第三方服务器 |
+
+**使用门槛：只有一个**——有一个能跑 Skill 的 AI 助手。手机装 APK，AI 装 Skill，就能用了。
+
+---
+
 ## ✨ 功能
 
 | 功能 | 说明 |
@@ -22,8 +37,10 @@
 
 ## 📱 界面预览
 
-<img src="assets/images/screenshot1.jpg" width="300" />
-<img src="assets/images/screenshot2.jpg" width="300" />
+<p align="center">
+  <img src="assets/images/screenshot1.jpg" width="300" />
+  <img src="assets/images/screenshot2.jpg" width="300" />
+</p>
 
 ---
 
