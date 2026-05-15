@@ -197,16 +197,30 @@ function saveConfig(){
   localStorage.setItem('fa_summary',SUMMARY_TABLE);
 }
 
-// ═══ 原生 HTTP ═══
+// ═══ HTTP：原生插件优先，浏览器fetch兜底 ═══
 function nativeReq(url,method,headers,body){
   return new Promise(function(ok,fail){
-    if(!window.Capacitor||!window.Capacitor.Plugins||!window.Capacitor.Plugins.FeishuApi){
-      fail(new Error('原生插件未加载'));
+    // 优先走 Capacitor 原生插件
+    if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.FeishuApi){
+      window.Capacitor.Plugins.FeishuApi.request({url:url,method:method||'GET',headers:headers||{},body:body||null})
+        .then(function(r){ok(JSON.parse(r.body))})
+        .catch(function(e){fail(new Error('原生插件错误: '+e)});
       return;
     }
-    window.Capacitor.Plugins.FeishuApi.request({url:url,method:method||'GET',headers:headers||{},body:body||null})
-      .then(function(r){ok(JSON.parse(r.body))})
-      .catch(function(e){fail(new Error('HTTP: '+e))});
+    // Fallback：浏览器原生 fetch（受CORS限制，调试用）
+    var opts={method:method||'GET',headers:headers||{}};
+    if(body&&method!=='GET')opts.body=body;
+    fetch(url,opts).then(function(res){
+      return res.json();
+    }).then(ok).catch(function(e){
+      // 区分错误类型
+      var msg=e.message||'';
+      if(msg.indexOf('Failed to fetch')>=0||msg.indexOf('NetworkError')>=0||msg.indexOf('CORS')>=0||msg.indexOf('cors')>=0){
+        fail(new Error('网络请求失败，可能是CORS或网络问题。如果在浏览器中调试请改用Android真机安装APK。错误: '+msg));
+      } else {
+        fail(new Error('请求失败: '+msg));
+      }
+    });
   });
 }
 function postJSON(url,obj,h){
@@ -509,6 +523,15 @@ document.getElementById('btn-login').addEventListener('click',function(){
 // ═══ 初始化 ═══
 function init(){
   loadConfig();
+  // 启动诊断
+  var capStatus='Capacitor='+(typeof window.Capacitor!=='undefined'?'✓':'✗');
+  if(window.Capacitor){
+    capStatus+=' Plugins='+(window.Capacitor.Plugins?'✓':'✗');
+    capStatus+=' FeishuApi='+(window.Capacitor.Plugins&&window.Capacitor.Plugins.FeishuApi?'✓':'✗');
+    capStatus+=' version='+(window.Capacitor.CAP_VERSION||'unknown');
+    capStatus+=' platform='+(window.Capacitor.platform||'unknown');
+  }
+  console.log('[记账] '+capStatus);
   // 检查是否已有完整凭证
   if(!APP_ID||!APP_SECRET||!BASE||!DETAIL_TABLE||!SUMMARY_TABLE){
     showLogin();
