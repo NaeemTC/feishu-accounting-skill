@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1a1a2e">
+<title>记账</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+:root{--bg:#0f0f1a;--card:#1a1a2e;--card2:#16213e;--accent:#4facfe;--income:#00c853;--expense:#ff5252;--net:#ffd600;--text:#e0e0e0;--dim:#888;--border:#2a2a4a;--r:16px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-tap-highlight-color:transparent;overflow-y:scroll}
+.hidden{display:none!important}
+.status-page{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:32px 24px;text-align:center}
+.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.status-page p{color:var(--dim);font-size:14px;max-width:300px;word-break:break-all}
+.status-page .err-icon{font-size:48px;margin-bottom:16px}
+.status-page h3{font-size:18px;margin-bottom:8px;color:var(--expense)}
+.status-page .btn{margin-top:20px;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:10px 28px;font-size:14px;cursor:pointer}
+.status-page pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:11px;color:var(--expense);text-align:left;max-width:100%;overflow-x:auto;margin-top:12px;white-space:pre-wrap;word-break:break-all}
+.header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+.header h2{font-size:17px;font-weight:700;background:linear-gradient(135deg,#4facfe,#00c853);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.month-sel{display:flex;align-items:center;gap:6px}
+.mbtn{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mbtn:active{background:var(--border)}
+.mbtn.sum{width:34px;height:34px;font-size:15px;font-weight:700}
+.mlabel{font-size:13px;font-weight:600;min-width:66px;text-align:center}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 12px 6px}
+.card{background:var(--card);border-radius:var(--r);padding:12px 10px;border:1px solid var(--border);display:flex;flex-direction:column;gap:4px}
+.card-lbl{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
+.card-val{font-size:17px;font-weight:700}
+.card-val.exp{color:var(--expense)}.card-val.inc{color:var(--income)}.card-val.nt{color:var(--net)}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:6px 12px}
+.ch{background:var(--card);border-radius:var(--r);padding:10px;border:1px solid var(--border);overflow:hidden}
+.ch h4{font-size:11px;color:var(--dim);margin-bottom:6px}
+.ch .box{height:180px}
+.ch-full{grid-column:1/-1}
+.ch-full .box{height:200px}
+.ch-pie{grid-column:1/-1}
+.ch-pie .box{height:280px}
+.cats{padding:6px 12px}
+.ci{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.ci:last-child{border-bottom:none}
+.ci-l{display:flex;align-items:center;gap:8px}
+.ci-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ci-name{font-size:13px}
+.ci-r{text-align:right}
+.ci-amt{font-size:13px;font-weight:600}
+.ci-pct{font-size:10px;color:var(--dim)}
+.section-title{padding:14px 12px 6px;font-size:13px;font-weight:600;color:var(--dim)}
+.details{padding:0 12px}
+.di{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);gap:6px}
+.di:last-child{border-bottom:none}
+.di-l{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.di-date{font-size:11px;color:var(--dim)}
+.di-txt{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.di-r{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.di-cat{font-size:10px;color:var(--dim);background:var(--card2);padding:1px 5px;border-radius:3px}
+.di-amt{font-size:13px;font-weight:600;color:var(--expense)}
+.di-amt.inc{color:var(--income)}
+.pg{display:flex;justify-content:center;align-items:center;gap:12px;padding:10px 0 40px}
+.pg button{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:8px;width:66px;height:28px;font-size:11px;cursor:pointer}
+.pg button:disabled{opacity:.4;cursor:not-allowed}
+.pg-info{font-size:10px;color:var(--dim)}
+</style>
+</head>
+<body>
+
+<div id="loading" class="status-page">
+  <div class="spinner"></div>
+  <p id="load-msg">正在连接飞书...</p>
+</div>
+
+<div id="error" class="status-page hidden">
+  <div class="err-icon">⚠️</div>
+  <h3>加载失败</h3>
+  <p id="err-msg"></p>
+  <pre id="err-detail"></pre>
+  <button class="btn" onclick="location.reload()">重试</button>
+</div>
+
+<div id="app" class="hidden">
+  <div class="header">
+    <h2>记账</h2>
+    <div class="month-sel">
+      <button class="mbtn sum" id="btn-sum" title="全部汇总">∑</button>
+      <button class="mbtn" id="btn-prev">‹</button>
+      <span class="mlabel" id="mlabel"></span>
+      <button class="mbtn" id="btn-next">›</button>
+    </div>
+  </div>
+  <div class="cards">
+    <div class="card"><span class="card-lbl">支出</span><span class="card-val exp" id="v-exp">-</span></div>
+    <div class="card"><span class="card-lbl">收入</span><span class="card-val inc" id="v-inc">-</span></div>
+    <div class="card"><span class="card-lbl">净额</span><span class="card-val nt" id="v-net">-</span></div>
+  </div>
+  <div class="charts">
+    <div class="ch ch-pie"><h4>支出分类</h4><div class="box" id="c-pie"></div></div>
+    <div class="ch"><h4>月度对比</h4><div class="box" id="c-bar"></div></div>
+    <div class="ch"><h4>日支出趋势</h4><div class="box" id="c-line"></div></div>
+  </div>
+  <div class="cats" id="cat-list"></div>
+  <div class="section-title">📋 消费明细</div>
+  <div class="details" id="detail-list"></div>
+  <div class="pg">
+    <button id="pg-prev" disabled>上一页</button>
+    <span class="pg-info" id="pg-info"></span>
+    <button id="pg-next" disabled>下一页</button>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+var APP_ID='***REMOVED***';
+var APP_SECRET='***REMOVED***';
+var API='https://open.feishu.cn/open-apis';
+var BASE='***REMOVED***';
+var DETAIL_TABLE='tbl6Nr0zDhNEjjC7';
+var SUMMARY_TABLE='tblioEEIdjVLosqS';
+
+// 明细表: [文本, 月份, 金额, 分类]
+var FI={text:0,month:1,amount:2,category:3};
+// 汇总表: [编号, 描述, 月份, 类型, 金额]
+var SI={no:0,desc:1,month:2,type:3,amount:4};
+
+var COLORS={餐饮:'#ff6b6b',购物:'#4dabf7',交通:'#ffa94d',娱乐:'#9775fa',通讯:'#69db7c',生活:'#ffd43b',其它:'#868e96',其他:'#868e96',收入:'#00c853'};
+var now=new Date();
+var curMonth=now.getFullYear()+'-'+pad2(now.getMonth()+1);
+var summaryRecords=[];
+var detailRecords=[];
+var isTotalMode=false;
+var detailPage=0;
+var PAGE_SIZE=15;
+var pieChart=null,barChart=null,lineChart=null;
+var cachedToken='',cachedTokenExp=0;
+
+function pad2(n){return n<10?'0'+n:''+n}
+
+// ═══ 原生 HTTP ═══
+function nativeReq(url,method,headers,body){
+  return new Promise(function(ok,fail){
+    if(!window.Capacitor||!window.Capacitor.Plugins||!window.Capacitor.Plugins.FeishuApi){
+      fail(new Error('原生插件未加载'));
+      return;
+    }
+    window.Capacitor.Plugins.FeishuApi.request({url:url,method:method||'GET',headers:headers||{},body:body||null})
+      .then(function(r){ok(JSON.parse(r.body))})
+      .catch(function(e){fail(new Error('HTTP: '+e))});
+  });
+}
+function postJSON(url,obj,h){
+  var hdr={'Content-Type':'application/json'};
+  if(h)for(var k in h)hdr[k]=h[k];
+  return nativeReq(url,'POST',hdr,JSON.stringify(obj));
+}
+
+// ═══ Token ═══
+function getToken(){
+  if(cachedToken&&Date.now()<cachedTokenExp)return Promise.resolve(cachedToken);
+  return postJSON(API+'/auth/v3/tenant_access_token/internal',{app_id:APP_ID,app_secret:APP_SECRET})
+    .then(function(d){
+      if(!d.tenant_access_token)throw new Error('token获取失败: '+JSON.stringify(d));
+      cachedToken=d.tenant_access_token;
+      cachedTokenExp=Date.now()+(d.expire||7200-120)*1000;
+      return cachedToken;
+    });
+}
+
+// ═══ 分页拉取：用 offset 翻页 ═══
+function fetchAll(token,tableId){
+  var all=[];
+  var offset=0;
+  var pageSize=100;
+  function page(){
+    var url=API+'/base/v3/bases/'+BASE+'/tables/'+tableId+'/records?page_size='+pageSize+'&offset='+offset;
+    return nativeReq(url,'GET',{Authorization:'Bearer '+token}).then(function(d){
+      if(d.code!==0)throw new Error('API错误 '+d.code+': '+d.msg);
+      var batch=(d.data&&d.data.data)||[];
+      if(!batch.length)return all;
+      for(var i=0;i<batch.length;i++)all.push(batch[i]);
+      var hasMore=d.data.has_more;
+      if(!hasMore)return all;
+      offset+=batch.length;
+      return page();
+    });
+  }
+  return page();
+}
+
+// ═══ 汇总表：月度收入/支出 ═══
+function getMonthSummary(month){
+  var inc=0,exp=0;
+  for(var i=0;i<summaryRecords.length;i++){
+    var r=summaryRecords[i];
+    if(month&&r[SI.month]!==month)continue;
+    var desc=r[SI.desc]||'';
+    var amt=r[SI.amount]||0;
+    if(desc.indexOf('总支出')>=0)exp+=amt;
+    else if(desc.indexOf('总收入')>=0)inc+=amt;
+  }
+  return{income:inc,expense:exp};
+}
+
+// ═══ 明细表：分类汇总（不含"-"的分类记录）═══
+function catSummaryFromDetail(month){
+  var m={};
+  for(var i=0;i<detailRecords.length;i++){
+    var r=detailRecords[i];
+    var txt=r[FI.text]||'';
+    if(txt.indexOf('-')>=0)continue; // 跳过明细
+    if(month&&r[FI.month]!==month)continue;
+    var catArr=r[FI.category];
+    var cat=(catArr&&catArr[0])||'其它';
+    var amt=r[FI.amount]||0;
+    if(!amt)continue;
+    m[cat]=(m[cat]||0)+amt;
+  }
+  var out=[];
+  for(var c in m)out.push({name:c,amount:m[c],color:COLORS[c]||'#868e96'});
+  out.sort(function(a,b){return b.amount-a.amount});
+  return out;
+}
+
+// ═══ 明细表：含"-"的记录 ═══
+function getDashRecords(month){
+  var out=[];
+  for(var i=0;i<detailRecords.length;i++){
+    var r=detailRecords[i];
+    var txt=r[FI.text]||'';
+    if(txt.indexOf('-')<0)continue;
+    if(month&&r[FI.month]!==month)continue;
+    out.push(r);
+  }
+  out.sort(function(a,b){
+    var da=(a[FI.text]||'').match(/(\d{4}-\d{2}-\d{2})/);
+    var db=(b[FI.text]||'').match(/(\d{4}-\d{2}-\d{2})/);
+    if(da&&db)return db[1].localeCompare(da[1]);
+    if(da)return -1;if(db)return 1;
+    return 0;
+  });
+  return out;
+}
+
+// ═══ 月份列表 ═══
+function getMonthList(){
+  var ms={};
+  for(var i=0;i<summaryRecords.length;i++){var m=summaryRecords[i][SI.month];if(m)ms[m]=1;}
+  for(var i=0;i<detailRecords.length;i++){var m=detailRecords[i][FI.month];if(m)ms[m]=1;}
+  return Object.keys(ms).sort().reverse();
+}
+
+// ═══ 渲染 ═══
+var fmt=function(v){return '¥'+v.toFixed(2)};
+
+function renderSummary(inc,exp){
+  document.getElementById('v-exp').textContent=fmt(exp);
+  document.getElementById('v-inc').textContent=fmt(inc);
+  var net=inc-exp;
+  var el=document.getElementById('v-net');
+  el.textContent=(net>=0?'+':'')+fmt(net);
+  el.className='card-val '+(net>=0?'nt':'exp');
+}
+
+function renderPie(cats){
+  var el=document.getElementById('c-pie');
+  if(!el)return;
+  if(!pieChart)pieChart=echarts.init(el,null,{renderer:'svg'});
+  if(!cats.length){
+    pieChart.clear();
+    pieChart.setOption({title:{text:'暂无数据',left:'center',top:'center',textStyle:{color:'#666',fontSize:13}}});
+    return;
+  }
+  pieChart.setOption({
+    backgroundColor:'transparent',
+    title:{show:false},
+    tooltip:{trigger:'item',formatter:function(p){return p.name+': ¥'+p.value.toFixed(2)+' ('+p.percent+'%)'},backgroundColor:'#1a1a2e',borderColor:'#2a2a4a',textStyle:{color:'#e0e0e0',fontSize:12}},
+    legend:{show:false},
+    series:[{
+      type:'pie',radius:['28%','62%'],center:['50%','52%'],
+      avoidLabelOverlap:true,
+      itemStyle:{borderRadius:5,borderColor:'#0f0f1a',borderWidth:2},
+      label:{show:true,formatter:'{b}\n¥{c} ({d}%)',fontSize:11,color:'#aaa',lineHeight:15},
+      labelLine:{lineStyle:{color:'#555'},length:8,length2:10},
+      emphasis:{label:{show:true,fontSize:13,fontWeight:'bold'}},
+      data:cats.map(function(c){return{name:c.name,value:Math.round(c.amount*100)/100,itemStyle:{color:c.color}}})
+    }]
+  });
+}
+
+function renderBar(){
+  var el=document.getElementById('c-bar');
+  if(!el)return;
+  if(!barChart)barChart=echarts.init(el,null,{renderer:'svg'});
+  var ms=getMonthList().slice(0,6);
+  var incD=[],expD=[];
+  for(var i=0;i<ms.length;i++){
+    var d=getMonthSummary(ms[i]);
+    incD.push(d.income);expD.push(d.expense);
+  }
+  barChart.setOption({
+    backgroundColor:'transparent',
+    tooltip:{trigger:'axis',confine:true,formatter:function(p){
+      var s=p[0].name+'<br/>';
+      for(var i=0;i<p.length;i++)s+='<span style="color:'+p[i].color+'">●</span> '+p[i].seriesName+': ¥'+p[i].value.toFixed(2)+'<br/>';
+      return s;
+    },backgroundColor:'#1a1a2e',borderColor:'#2a2a4a',textStyle:{color:'#e0e0e0',fontSize:12}},
+    grid:{left:42,right:10,top:10,bottom:22},
+    xAxis:{type:'category',data:ms.map(function(m){return m.slice(5)}),axisLabel:{color:'#888',fontSize:10},axisLine:{lineStyle:{color:'#2a2a4a'}}},
+    yAxis:{type:'value',axisLabel:{color:'#888',fontSize:10,formatter:function(v){return v>=1000?(v/1000)+'k':v}},splitLine:{lineStyle:{color:'#222'}},axisLine:{show:false}},
+    series:[
+      {name:'收入',type:'bar',data:incD,itemStyle:{color:'#00c853',borderRadius:[3,3,0,0]},barMaxWidth:24},
+      {name:'支出',type:'bar',data:expD,itemStyle:{color:'#ff5252',borderRadius:[3,3,0,0]},barMaxWidth:24}
+    ]
+  });
+}
+
+function renderLine(month){
+  var el=document.getElementById('c-line');
+  if(!el)return;
+  if(!lineChart)lineChart=echarts.init(el,null,{renderer:'svg'});
+  var recs=getDashRecords(month);
+  var dayMap={};
+  for(var i=0;i<recs.length;i++){
+    var txt=recs[i][FI.text]||'';
+    var amt=recs[i][FI.amount]||0;
+    var m=txt.match(/(\d{4}-\d{2}-\d{2})/);
+    if(m)dayMap[m[1]]=(dayMap[m[1]]||0)+amt;
+  }
+  var days=Object.keys(dayMap).sort();
+  if(!days.length){
+    lineChart.clear();
+    lineChart.setOption({title:{text:'暂无日趋势数据',left:'center',top:'center',textStyle:{color:'#666',fontSize:13}}});
+    return;
+  }
+  lineChart.setOption({
+    backgroundColor:'transparent',
+    title:{show:false},
+    tooltip:{trigger:'axis',confine:true,formatter:function(p){return p[0].name+'<br/><span style="color:'+p[0].color+'">●</span> ¥'+p[0].value.toFixed(2)},backgroundColor:'#1a1a2e',borderColor:'#2a2a4a',textStyle:{color:'#e0e0e0',fontSize:12}},
+    grid:{left:42,right:14,top:10,bottom:22},
+    xAxis:{type:'category',data:days.map(function(d){return d.slice(5)}),axisLabel:{color:'#888',fontSize:10},axisLine:{lineStyle:{color:'#2a2a4a'}}},
+    yAxis:{type:'value',axisLabel:{color:'#888',fontSize:10,formatter:function(v){return '¥'+v}},splitLine:{lineStyle:{color:'#222'}},axisLine:{show:false}},
+    series:[{type:'line',data:days.map(function(d){return Math.round(dayMap[d]*100)/100}),smooth:true,symbol:'circle',symbolSize:7,lineStyle:{color:'#4facfe',width:2.5},itemStyle:{color:'#4facfe'},areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(79,172,254,0.25)'},{offset:1,color:'rgba(79,172,254,0)'}]}}}]
+  });
+}
+
+function renderCats(cats,expTotal){
+  var html='';
+  for(var i=0;i<cats.length;i++){
+    var c=cats[i];
+    var pct=expTotal>0?Math.round(c.amount/expTotal*100):0;
+    html+='<div class="ci"><div class="ci-l"><div class="ci-dot" style="background:'+c.color+'"></div><span class="ci-name">'+c.name+'</span></div><div class="ci-r"><div class="ci-amt" style="color:'+c.color+'">¥'+c.amount.toFixed(2)+'</div><div class="ci-pct">'+pct+'%</div></div></div>';
+  }
+  document.getElementById('cat-list').innerHTML=html;
+}
+
+function renderDetails(month){
+  var recs=getDashRecords(month);
+  var total=recs.length;
+  var pages=Math.ceil(total/PAGE_SIZE)||1;
+  if(detailPage>=pages)detailPage=pages-1;
+  if(detailPage<0)detailPage=0;
+  var start=detailPage*PAGE_SIZE;
+  var slice=recs.slice(start,start+PAGE_SIZE);
+  var html='';
+  for(var i=0;i<slice.length;i++){
+    var r=slice[i];
+    var txt=r[FI.text]||'';
+    var m=r[FI.month]||'';
+    var amt=r[FI.amount]||0;
+    var catArr=r[FI.category];
+    var cat=(catArr&&catArr[0])||'其它';
+    var dm=txt.match(/(\d{4}-\d{2}-\d{2})/);
+    var dateStr=dm?dm[0]:m;
+    var desc=dm?txt.slice(dm[0].length):txt;
+    html+='<div class="di"><div class="di-l"><div class="di-date">'+dateStr+'</div><div class="di-txt">'+desc+'</div></div><div class="di-r"><span class="di-cat">'+cat+'</span><span class="di-amt">¥'+amt.toFixed(2)+'</span></div></div>';
+  }
+  document.getElementById('detail-list').innerHTML=html||'<div style="padding:20px;text-align:center;color:#666;font-size:13px">暂无明细记录</div>';
+  document.getElementById('pg-info').textContent=total>0?'第 '+(detailPage+1)+'/'+pages+' 页 · 共 '+total+' 条':'';
+  document.getElementById('pg-prev').disabled=detailPage<=0;
+  document.getElementById('pg-next').disabled=detailPage>=pages-1;
+}
+
+// ═══ 主渲染 ═══
+function render(){
+  var month=isTotalMode?null:curMonth;
+  // 收入/支出 → 汇总表
+  var sm=getMonthSummary(month);
+  renderSummary(sm.income,sm.expense);
+  // 分类饼图 → 明细表中无"-"的分类记录（按月筛选）
+  var cats=catSummaryFromDetail(month);
+  renderPie(cats);
+  renderBar();
+  // 日趋势 → 明细表中有"-"的记录（按月筛选）
+  renderLine(month);
+  renderCats(cats,sm.expense);
+  renderDetails(month);
+  document.getElementById('mlabel').textContent=isTotalMode?'全部':curMonth;
+}
+
+// ═══ 页面 ═══
+function showLoading(msg){
+  document.getElementById('loading').classList.remove('hidden');
+  document.getElementById('error').classList.add('hidden');
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('load-msg').textContent=msg||'正在连接飞书...';
+}
+function showError(msg,detail){
+  document.getElementById('loading').classList.add('hidden');
+  document.getElementById('error').classList.remove('hidden');
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('err-msg').textContent=msg;
+  document.getElementById('err-detail').textContent=detail||'';
+}
+function showApp(){
+  document.getElementById('loading').classList.add('hidden');
+  document.getElementById('error').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+}
+
+// ═══ 初始化 ═══
+function init(){
+  showLoading('正在获取令牌...');
+  getToken().then(function(token){
+    showLoading('正在拉取全部数据...');
+    return Promise.all([
+      fetchAll(token,DETAIL_TABLE),
+      fetchAll(token,SUMMARY_TABLE)
+    ]);
+  }).then(function(r){
+    detailRecords=r[0]||[];
+    summaryRecords=r[1]||[];
+    showApp();
+    render();
+  }).catch(function(e){
+    showError(e.message,e.stack||'');
+  });
+}
+
+// ═══ 事件 ═══
+document.getElementById('btn-prev').addEventListener('click',function(){
+  var p=curMonth.split('-');
+  var d=new Date(parseInt(p[0]),parseInt(p[1])-2,1);
+  curMonth=d.getFullYear()+'-'+pad2(d.getMonth()+1);
+  detailPage=0;render();
+});
+document.getElementById('btn-next').addEventListener('click',function(){
+  var p=curMonth.split('-');
+  var d=new Date(parseInt(p[0]),parseInt(p[1]),1);
+  curMonth=d.getFullYear()+'-'+pad2(d.getMonth()+1);
+  detailPage=0;render();
+});
+document.getElementById('btn-sum').addEventListener('click',function(){
+  isTotalMode=!isTotalMode;detailPage=0;render();
+});
+document.getElementById('pg-prev').addEventListener('click',function(){
+  detailPage--;renderDetails(isTotalMode?null:curMonth);
+});
+document.getElementById('pg-next').addEventListener('click',function(){
+  detailPage++;renderDetails(isTotalMode?null:curMonth);
+});
+window.addEventListener('resize',function(){
+  if(pieChart)pieChart.resize();
+  if(barChart)barChart.resize();
+  if(lineChart)lineChart.resize();
+});
+init();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "appId": "com.feishu.dashboard",
+  "appName": "记账",
+  "webDir": "dist",
+  "android": {
+    "allowMixedContent": true
+  },
+  "plugins": {
+    "FeishuApi": {}
+  }
+}

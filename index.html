@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#1a1a2e" />
+    <title>记账</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <!-- 授权页 -->
+    <div id="login-page" class="page">
+      <div class="login-box">
+        <div class="logo">💰</div>
+        <h1>记账</h1>
+        <p class="subtitle">飞书数据 · 本地图表</p>
+        <button id="login-btn" class="btn-primary">授权飞书账号</button>
+        <div id="login-tips" class="tips"></div>
+        <div id="qr-section" class="qr-section hidden">
+          <p class="qr-hint">请在浏览器打开以下链接授权：</p>
+          <a id="auth-url" class="auth-url" href="#" target="_blank"></a>
+          <p class="qr-hint" style="margin-top:12px">或扫码授权</p>
+          <img id="qr-code" class="qr-img" src="" alt="二维码" />
+          <div class="poll-status">
+            <div class="spinner"></div>
+            <span id="poll-msg">等待授权...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 仪表盘页 -->
+    <div id="dashboard-page" class="page hidden">
+      <header class="dashboard-header">
+        <h2>记账</h2>
+        <div class="month-selector">
+          <button id="prev-month" class="month-btn">◀</button>
+          <span id="current-month" class="month-label">2026-05</span>
+          <button id="next-month" class="month-btn">▶</button>
+        </div>
+        <button id="logout-btn" class="btn-ghost">退出</button>
+      </header>
+
+      <!-- 汇总卡片 -->
+      <div class="summary-cards">
+        <div class="card income-card">
+          <span class="card-label">收入</span>
+          <span id="total-income" class="card-amount income">¥0.00</span>
+        </div>
+        <div class="card expense-card">
+          <span class="card-label">支出</span>
+          <span id="total-expense" class="card-amount expense">¥0.00</span>
+        </div>
+        <div class="card net-card">
+          <span class="card-label">净额</span>
+          <span id="total-net" class="card-amount net">¥0.00</span>
+        </div>
+      </div>
+
+      <!-- 图表区域 -->
+      <div class="chart-section">
+        <h3 class="section-title">支出分类</h3>
+        <div id="pie-chart" class="chart-container"></div>
+      </div>
+
+      <div class="chart-section">
+        <h3 class="section-title">月度对比</h3>
+        <div id="bar-chart" class="chart-container"></div>
+      </div>
+
+      <!-- 分类明细 -->
+      <div class="detail-section">
+        <h3 class="section-title">分类明细</h3>
+        <div id="category-list" class="category-list"></div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
