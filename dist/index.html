@@ -33,6 +33,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .f-row .hint{font-size:10px;color:var(--dim);margin-top:3px}
 .lbtn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:12px;font-size:15px;font-weight:600;cursor:pointer;margin-top:6px}
 .lbtn:active{opacity:.85}
+.lang-btn{position:absolute;top:16px;right:16px;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:4px 8px;font-size:11px;cursor:pointer}
+.lang-btn:active{background:var(--border)}
 /* ─── 顶部导航 ─── */
 .header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
 .title-group{display:flex;align-items:center;gap:8px}
@@ -93,34 +95,35 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <h3>加载失败</h3>
   <p id="err-msg"></p>
   <pre id="err-detail"></pre>
-  <button class="btn" onclick="location.reload()">重试</button>
+  <button class="btn" id="btn-retry" onclick="location.reload()">重试</button>
 </div>
 
 <div id="login" class="login-page hidden">
   <div class="login-card">
     <h2>AI特工记账</h2>
     <p class="sub">输入飞书应用凭证</p>
+    <button class="lang-btn" id="btn-lang" title="切换语言">中 EN</button>
     <div class="f-row">
-      <label>App ID</label>
+      <label id="f-appid-label">App ID</label>
       <input type="text" id="f-appid" placeholder="cli_xxxxxxxxxxxx" autocomplete="off">
     </div>
     <div class="f-row">
-      <label>App Secret</label>
+      <label id="f-secret-label">App Secret</label>
       <input type="password" id="f-secret" placeholder="App Secret" autocomplete="off">
     </div>
     <div class="f-row">
-      <label>Base Token</label>
+      <label id="f-base-label">Base Token</label>
       <input type="text" id="f-base" placeholder="多维表格的 Base Token" autocomplete="off">
     </div>
     <div class="f-row">
-      <label>明细表 ID</label>
+      <label id="f-detail-label">明细表 ID</label>
       <input type="text" id="f-detail" placeholder="tblxxxxxxxxxxxx" autocomplete="off">
-      <p class="hint">记账明细所在的多维表格 ID</p>
+      <p class="hint" id="f-detail-hint">记账明细所在的多维表格 ID</p>
     </div>
     <div class="f-row">
-      <label>汇总表 ID</label>
+      <label id="f-summary-label">汇总表 ID</label>
       <input type="text" id="f-summary" placeholder="tblxxxxxxxxxxxx" autocomplete="off">
-      <p class="hint">月度收入/支出汇总所在的多维表格 ID</p>
+      <p class="hint" id="f-summary-hint">月度收入/支出汇总所在的多维表格 ID</p>
     </div>
     <button class="lbtn" id="btn-login">连接飞书</button>
   </div>
@@ -178,6 +181,104 @@ var detailPage=0;
 var PAGE_SIZE=15;
 var pieChart=null,barChart=null,lineChart=null;
 var cachedToken='',cachedTokenExp=0;
+var lang=localStorage.getItem('fa_lang')||'zh';
+var T={
+  'AI特工记账':'AI特工记账',
+  '输入飞书应用凭证':'输入飞书应用凭证',
+  'App ID':'App ID',
+  'App Secret':'App Secret',
+  'Base Token':'Base Token',
+  '明细表 ID':'明细表 ID',
+  '汇总表 ID':'汇总表 ID',
+  '记账明细所在的多维表格 ID':'记账明细所在的多维表格 ID',
+  '月度收入/支出汇总所在的多维表格 ID':'月度收入/支出汇总所在的多维表格 ID',
+  '连接飞书':'连接飞书',
+  'Connect to Feishu':'Connect to Feishu',
+  '请填写所有字段':'请填写所有字段',
+  'Please fill in all fields':'Please fill in all fields',
+  '正在连接飞书...':'正在连接飞书...',
+  'Connecting to Feishu...':'Connecting to Feishu...',
+  '正在获取令牌...':'正在获取令牌...',
+  'Obtaining token...':'Obtaining token...',
+  '正在拉取全部数据...':'正在拉取全部数据...',
+  'Fetching all data...':'Fetching all data...',
+  '加载失败':'加载失败',
+  'Load Failed':'Load Failed',
+  '重试':'Retry',
+  'Retry':'Retry',
+  '支出':'支出',
+  'Expense':'Expense',
+  '收入':'收入',
+  'Income':'Income',
+  '净额':'净额',
+  'Net':'Net',
+  '支出分类':'支出分类',
+  'Expense Breakdown':'Expense Breakdown',
+  '月度对比':'月度对比',
+  'Monthly Compare':'Monthly Compare',
+  '日支出趋势':'日支出趋势',
+  'Daily Expense':'Daily Expense',
+  '消费明细':'消费明细',
+  'Transaction Details':'Transaction Details',
+  '上一页':'上一页',
+  'Prev':'Prev',
+  '下一页':'下一页',
+  'Next':'Next',
+  '暂无明细记录':'暂无明细记录',
+  'No records yet':'No records yet',
+  '暂无数据':'暂无数据',
+  'No data':'No data',
+  '暂无日趋势数据':'暂无日趋势数据',
+  'No daily data':'No daily data',
+  '请先在设置中填写飞书凭证':'请先在设置中填写飞书凭证',
+  'Please fill in Feishu credentials in settings':'Please fill in Feishu credentials in settings',
+  '全部':'全部',
+  'All':'All',
+  '切换语言':'切换语言',
+  'Switch Language':'Switch Language'
+};
+
+function g(id){return document.getElementById(id);}
+function applyLang(){
+  var zh=lang==='zh';
+  // login page
+  var login=g('login');
+  if(login&&!login.classList.contains('hidden')){
+    g('load-msg').textContent=T[zh?'正在连接飞书...':'Connecting to Feishu...'];
+    g('err-msg').textContent=T[zh?'加载失败':'Load Failed'];
+    g('btn-retry').textContent=T[zh?'重试':'Retry'];
+    g('f-appid-label').textContent=T['App ID'];
+    g('f-secret-label').textContent=T['App Secret'];
+    g('f-base-label').textContent=T['Base Token'];
+    g('f-detail-label').textContent=T['明细表 ID'];
+    g('f-detail-hint').textContent=T['记账明细所在的多维表格 ID'];
+    g('f-summary-label').textContent=T['汇总表 ID'];
+    g('f-summary-hint').textContent=T['月度收入/支出汇总所在的多维表格 ID'];
+    g('btn-login').textContent=T[zh?'连接飞书':'Connect to Feishu'];
+  }
+  // app page
+  var app=g('app');
+  if(app&&!app.classList.contains('hidden')){
+    g('v-exp').previousElementSibling.textContent=T[zh?'支出':'Expense'];
+    g('v-inc').previousElementSibling.textContent=T[zh?'收入':'Income'];
+    g('v-net').previousElementSibling.textContent=T[zh?'净额':'Net'];
+    if(pieChart)pieChart.setOption({title:{text:T[zh?'暂无数据':'No data'],left:'center',top:'center',textStyle:{color:'#666',fontSize:13}}});
+    if(barChart)barChart.setOption({
+      title:{text:T[zh?'暂无日趋势数据':'No daily data'],left:'center',top:'center',textStyle:{color:'#666',fontSize:13}},
+      series:[
+        {name:T[zh?'收入':'Income'],type:'bar',data:barChart.getOption().series[0].data,itemStyle:{color:'#00c853',borderRadius:[3,3,0,0]},barMaxWidth:24},
+        {name:T[zh?'支出':'Expense'],type:'bar',data:barChart.getOption().series[1].data,itemStyle:{color:'#ff5252',borderRadius:[3,3,0,0]},barMaxWidth:24}
+      ]
+    });
+    if(lineChart)lineChart.setOption({title:{text:T[zh?'暂无日趋势数据':'No daily data'],left:'center',top:'center',textStyle:{color:'#666',fontSize:13}}});
+    document.querySelector('.section-title').textContent=T[zh?'📋 消费明细':'📋 Transaction Details'];
+    var noRec=document.querySelector('#detail-list>div');
+    if(noRec&&noRec.style.padding==='20px')noRec.textContent=T[zh?'暂无明细记录':'No records yet'];
+    g('pg-prev').textContent=T[zh?'上一页':'Prev'];
+    g('pg-next').textContent=T[zh?'下一页':'Next'];
+    g('mlabel').textContent=isTotalMode?T['全部']:curMonth;
+  }
+}
 
 function pad2(n){return n<10?'0'+n:''+n}
 
@@ -343,7 +444,7 @@ function renderPie(cats){
   if(!pieChart)pieChart=echarts.init(el,null,{renderer:'svg'});
   if(!cats.length){
     pieChart.clear();
-    pieChart.setOption({title:{text:'暂无数据',left:'center',top:'center',textStyle:{color:'#666',fontSize:13}}});
+    pieChart.setOption({title:{text:T['暂无数据'],left:'center',top:'center',textStyle:{color:'#666',fontSize:13}}});
     return;
   }
   pieChart.setOption({
@@ -384,8 +485,8 @@ function renderBar(){
     xAxis:{type:'category',data:ms.map(function(m){return m.slice(5)}),axisLabel:{color:'#888',fontSize:10},axisLine:{lineStyle:{color:'#2a2a4a'}}},
     yAxis:{type:'value',axisLabel:{color:'#888',fontSize:10,formatter:function(v){return v>=1000?(v/1000)+'k':v}},splitLine:{lineStyle:{color:'#222'}},axisLine:{show:false}},
     series:[
-      {name:'收入',type:'bar',data:incD,itemStyle:{color:'#00c853',borderRadius:[3,3,0,0]},barMaxWidth:24},
-      {name:'支出',type:'bar',data:expD,itemStyle:{color:'#ff5252',borderRadius:[3,3,0,0]},barMaxWidth:24}
+      {name:T['收入'],type:'bar',data:incD,itemStyle:{color:'#00c853',borderRadius:[3,3,0,0]},barMaxWidth:24},
+      {name:T['支出'],type:'bar',data:expD,itemStyle:{color:'#ff5252',borderRadius:[3,3,0,0]},barMaxWidth:24}
     ]
   });
 }
@@ -405,7 +506,7 @@ function renderLine(month){
   var days=Object.keys(dayMap).sort();
   if(!days.length){
     lineChart.clear();
-    lineChart.setOption({title:{text:'暂无日趋势数据',left:'center',top:'center',textStyle:{color:'#666',fontSize:13}}});
+    lineChart.setOption({title:{text:T['暂无日趋势数据'],left:'center',top:'center',textStyle:{color:'#666',fontSize:13}}});
     return;
   }
   lineChart.setOption({
@@ -496,6 +597,9 @@ function showLogin(){
   document.getElementById('f-base').value=BASE;
   document.getElementById('f-detail').value=DETAIL_TABLE;
   document.getElementById('f-summary').value=SUMMARY_TABLE;
+  var btn=document.getElementById('btn-lang');
+  btn.textContent=lang==='zh'?'中 EN':'EN 中';
+  applyLang();
 }
 function showApp(){
   document.getElementById('loading').classList.add('hidden');
@@ -512,12 +616,20 @@ document.getElementById('btn-login').addEventListener('click',function(){
   DETAIL_TABLE=document.getElementById('f-detail').value.trim();
   SUMMARY_TABLE=document.getElementById('f-summary').value.trim();
   if(!APP_ID||!APP_SECRET||!BASE||!DETAIL_TABLE||!SUMMARY_TABLE){
-    alert('请填写所有字段');
+    alert(lang==='zh'?'请填写所有字段':'Please fill in all fields');
     return;
   }
   saveConfig();
   cachedToken='';cachedTokenExp=0;
   init();
+});
+
+document.getElementById('btn-lang').addEventListener('click',function(){
+  lang=lang==='zh'?'en':'zh';
+  localStorage.setItem('fa_lang',lang);
+  var btn=document.getElementById('btn-lang');
+  btn.textContent=lang==='zh'?'中 EN':'EN 中';
+  applyLang();
 });
 
 // ═══ 初始化 ═══
@@ -543,6 +655,7 @@ function init(){
   }).catch(function(e){
     showError(e.message,e.stack||'');
   });
+  applyLang();
 }
 
 // ═══ 事件 ═══
