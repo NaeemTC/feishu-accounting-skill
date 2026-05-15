@@ -46,7 +46,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 12px 6px}
 .card{background:var(--card);border-radius:var(--r);padding:12px 10px;border:1px solid var(--border);display:flex;flex-direction:column;gap:4px}
 .card-lbl{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
-.card-val{font-size:17px;font-weight:700}
+.card-val{font-size:clamp(12px,4.5vw,17px);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card-val.exp{color:var(--expense)}.card-val.inc{color:var(--income)}.card-val.nt{color:var(--net)}
 .charts{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:6px 12px}
 .ch{background:var(--card);border-radius:var(--r);padding:10px;border:1px solid var(--border);overflow:hidden}
@@ -466,9 +466,7 @@ function renderDetails(month){
 
 function render(){
   var month=isTotalMode?null:curMonth;
-  console.log('DEBUG render called', 'month=', month, 'summaryRecords.length=', summaryRecords.length, 'curMonth=', curMonth);
   var sm=getMonthSummary(month);
-  console.log('DEBUG sm=', JSON.stringify(sm));
   renderSummary(sm.income,sm.expense);
   var cats=catSummaryFromDetail(month);
   renderPie(cats);
@@ -554,9 +552,6 @@ function init(){
   }).then(function(r){
     detailRecords=r[0]||[];
     summaryRecords=r[1]||[];
-    console.log('DEBUG summaryRecords.length=', summaryRecords.length);
-    console.log('DEBUG summaryRecords sample:', JSON.stringify(summaryRecords.slice(0,3)));
-    console.log('DEBUG detailRecords sample:', JSON.stringify(detailRecords.slice(0,1)));
     showApp();
     render();
   }).catch(function(e){
