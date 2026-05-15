@@ -270,10 +270,10 @@ function getMonthSummary(month){
   for(var i=0;i<summaryRecords.length;i++){
     var r=summaryRecords[i];
     if(month&&r[SI.month]!==month)continue;
-    var desc=r[SI.desc]||'';
+    var type=r[SI.type]||'';
     var amt=r[SI.amount]||0;
-    if(desc.indexOf('总支出')>=0)exp+=amt;
-    else if(desc.indexOf('总收入')>=0)inc+=amt;
+    if(type==='支出')exp+=amt;
+    else if(type==='收入')inc+=amt;
   }
   return{income:inc,expense:exp};
 }
