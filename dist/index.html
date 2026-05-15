@@ -41,6 +41,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .mbtn{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .mbtn:active{background:var(--border)}
 .mbtn.sum{width:34px;height:34px;font-size:15px;font-weight:700}
+.mbtn.pressed{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important;transform:scale(.93);box-shadow:inset 0 2px 6px rgba(0,0,0,.45)}
 .mlabel{font-size:13px;font-weight:600;min-width:66px;text-align:center}
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 12px 6px}
 .card{background:var(--card);border-radius:var(--r);padding:12px 10px;border:1px solid var(--border);display:flex;flex-direction:column;gap:4px}
@@ -445,9 +446,15 @@ function renderDetails(month){
     var amt=r[FI.amount]||0;
     var catArr=r[FI.category];
     var cat=(catArr&&catArr[0])||'其它';
-    var dm=txt.match(/(\d{4}-\d{2}-\d{2})/);
-    var dateStr=dm?dm[0]:m;
-    var desc=dm?txt.slice(dm[0].length):txt;
+    var dm_full = txt.match(/(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})/);
+    if (dm_full) {
+        var dateStr = dm_full[1] + ' ' + dm_full[2];
+        var desc = txt.slice(dm_full[0].length);
+    } else {
+        var dm = txt.match(/(\d{4}-\d{2}-\d{2})/);
+        var dateStr = dm ? dm[0] : m;
+        var desc = dm ? txt.slice(dm[0].length) : txt;
+    }
     html+='<div class="di"><div class="di-l"><div class="di-date">'+dateStr+'</div><div class="di-txt">'+desc+'</div></div><div class="di-r"><span class="di-cat">'+cat+'</span><span class="di-amt">¥'+amt.toFixed(2)+'</span></div></div>';
   }
   document.getElementById('detail-list').innerHTML=html||'<div style="padding:20px;text-align:center;color:#666;font-size:13px">暂无明细记录</div>';
@@ -467,6 +474,12 @@ function render(){
   renderCats(cats,sm.expense);
   renderDetails(month);
   document.getElementById('mlabel').textContent=isTotalMode?'全部':curMonth;
+  var btnPrev=document.getElementById('btn-prev');
+  var btnNext=document.getElementById('btn-next');
+  var btnSum=document.getElementById('btn-sum');
+  btnPrev.disabled=isTotalMode;
+  btnNext.disabled=isTotalMode;
+  btnSum.classList.toggle('pressed',isTotalMode);
 }
 
 // ═══ 页面切换 ═══
@@ -559,7 +572,14 @@ document.getElementById('btn-next').addEventListener('click',function(){
   detailPage=0;render();
 });
 document.getElementById('btn-sum').addEventListener('click',function(){
-  isTotalMode=!isTotalMode;detailPage=0;render();
+  isTotalMode=!isTotalMode;detailPage=0;
+  var btnPrev=document.getElementById('btn-prev');
+  var btnNext=document.getElementById('btn-next');
+  var btnSum=document.getElementById('btn-sum');
+  btnPrev.disabled=isTotalMode;
+  btnNext.disabled=isTotalMode;
+  btnSum.classList.toggle('pressed',isTotalMode);
+  render();
 });
 document.getElementById('pg-prev').addEventListener('click',function(){
   detailPage--;renderDetails(isTotalMode?null:curMonth);
