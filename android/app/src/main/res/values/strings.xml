@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">账单</string>
-    <string name="title_activity_main">账单</string>
+    <string name="app_name">AI特工记账</string>
+    <string name="title_activity_main">AI特工记账</string>
     <string name="package_name">com.feishu.dashboard</string>
     <string name="custom_url_scheme">com.feishu.dashboard</string>
 </resources>

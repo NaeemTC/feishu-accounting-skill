@@ -1,23 +1,23 @@
-# 账单 - AI 助手记账软件
+# AI Agent Personal Accounting
 
-基于 Capacitor 的 Android 原生记账应用，对接飞书多维表格 API，支持收入/支出统计、月度趋势图表、明细记录浏览。
+Personal accounting Android app powered by AI Agent (Hermes), integrated with Feishu/Lark Base API for data storage. Supports income/expense tracking, monthly trends, category breakdown, and transaction detail browsing.
 
-## 功能
+## Features
 
-- 读取飞书多维表格汇总数据和明细记录
-- 月度收入/支出汇总
-- 日趋势折线图
-- 分类支出饼图
-- 明细记录列表浏览
+- Read summary and detail records from Feishu Base tables
+- Monthly income/expense overview
+- Daily spending trend line chart
+- Category breakdown pie chart
+- Paginated transaction list
 
-## 技术栈
+## Tech Stack
 
 - Capacitor 8.x (Android)
-- TypeScript + Vite
+- Vanilla TypeScript + Vite
 - ECharts 6.x
-- 飞书 Base API v3
+- Feishu Base API v3
 
-## 构建
+## Setup
 
 ```bash
 npm install
@@ -25,4 +25,10 @@ npx cap sync android
 npx cap build android
 ```
 
-APK 输出位置：`android/app/build/outputs/apk/debug/app-debug.apk`
+## Build APK
+
+```bash
+bash sync.sh
+```
+
+APK output: `android/app/build/outputs/apk/debug/app-debug.apk`
