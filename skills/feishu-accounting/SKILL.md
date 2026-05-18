@@ -320,28 +320,29 @@ feishu-accounting/
 
 ---
 
-## 踩坑记录
+## ⚠️ 常见问题与注意事项
 
-| 时间 | 踩坑 | 教训 |
-|------|------|------|
-| 2026-05-14 | 飞书字段 index 写反：金额写成 index=4、分类写成 index=2，导致写入后数据全 null。 | 写之前用 `feishu-cli bitable field list` 确认字段顺序，不要靠记忆。 |
-| 2026-05-14 | `sync_to_feishu()` 漏传 `文本`（备注）和 `单选`（类型）字段，只同步了月/金/分类。API 返回 200 但这两个字段全 null。 | 新增飞书字段后，config 和函数签名必须同步更新。 |
-| 2026-05-14 | Tenant Token 下 `page_size=100` 实际只返回 20 条，`page_token` 返回 null。 | 翻页用 `offset` 参数：第 1 页不带 offset，第 2 页 `offset=20`。 |
-| 2026-05-11 | cron 脚本停车费写死 ¥40，历史记录全部是 ¥4.5。 | 修改任何脚本里的金额前必须先查历史账单交叉验证。 |
-| 2026-05-14 | 判断记录有效性用 `text.includes('-')` 过滤，把有效记录全漏了。 | 判断标准：amount 非 null 且非 0 即可进入聚合，不管 text 是不是 null。 |
-| 2026-05-14 | `record_bill.py` 只写明细表，漏写汇总表。汇总表是仪表盘收支数据来源之一。 | 每次 `add_record()` 必须同时调用 `sync_to_feishu()` + `sync_summary_to_feishu()`。 |
+| 常见问题 | 原因 | 解决办法 |
+|------|------|--------|
+| 飞书字段 index 写反，写入后数据全 null | 金额写成 index=4、分类写成 index=2，字段顺序和实际不匹配 | 写字段前用 `feishu-cli bitable field list` 确认字段顺序，不要靠记忆 |
+| `sync_to_feishu()` 漏传某些字段 | 只同步了月份/金额/分类，`文本` 和 `单选` 字段未传入。飞书 API 返回 200 但这些字段全 null | 新增飞书字段后，`sync_to_feishu()` 的 config 和函数签名必须同步更新 |
+| Tenant Token 下 `page_size=100` 实际只返回 20 条 | 飞书 API 对 Tenant Token 有分页限制，`page_token` 返回 null | 翻页用 `offset` 参数：第 1 页不带 offset，第 2 页 `offset=20`，第 3 页 `offset=40` |
+| 用 `text.includes('-')` 判断有效记录，漏掉了有效数据 | 明细表有些记录的 `文本` 字段为 null，但金额和分类有效。`text.includes('-')` 会把这些记录全过滤掉 | 判断标准：amount 非 null 且非 0 即可进入聚合，不管 text 是不是 null |
+| `record_bill.py` 只写明细表，汇总表数据缺失 | 汇总表是仪表盘收支数据来源之一，漏写会导致统计数据不完整 | 每次 `add_record()` 必须同时调用 `sync_to_feishu()` 写明细表 + `sync_summary_to_feishu()` 写汇总表 |
 
 ---
 
-## 飞书文本字段格式（与仪表盘 app 耦合）
+## 飞书文本字段格式（与仪表盘 app 关联）
 
-record_bill.py 写入飞书的文本格式为：
+`record_bill.py` 写入飞书的文本格式为：
 
 ```
 {YYYY-MM-DD} {HH:mm}{备注}
 例如：2026-05-15 13:11停车费
 ```
 
-仪表盘 app 解析正则（不能改）：
-- 有时间：`(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})` → 日期 + 时间
-- 无时间旧记录：`(\d{4}-\d{2}-\d{2})` → 仅日期（兜底）
+仪表盘 app 解析规则：
+- 有时间戳的记录：`(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})` → 提取日期 + 时间
+- 无时间戳的旧记录：`(\d{4}-\d{2}-\d{2})` → 仅提取日期（兜底）
+
+> ⚠️ 如需修改 `record_bill.py` 的文本写入格式，请同步确认仪表盘 app 的正则解析逻辑能否兼容新旧两种格式。
