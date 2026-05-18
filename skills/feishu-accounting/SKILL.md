@@ -5,6 +5,29 @@ version: 1.0.0
 author: Naeem
 homepage: https://github.com/NaeemTC/feishu-accounting-skill
 tags: [feishu, bitable, accounting, setup]
+metadata:
+  openclaw:
+    requires:
+      env:
+        - FEISHU_BASE_TOKEN
+        - FEISHU_DETAIL_TABLE_ID
+        - FEISHU_SUMMARY_TABLE_ID
+      bins:
+        - curl
+        - python3
+    primaryEnv: FEISHU_BASE_TOKEN
+    envVars:
+      - name: FEISHU_BASE_TOKEN
+        required: true
+        description: "飞书多维表格 Base Token"
+      - name: FEISHU_DETAIL_TABLE_ID
+        required: true
+        description: "明细表 Table ID"
+      - name: FEISHU_SUMMARY_TABLE_ID
+        required: true
+        description: "汇总表 Table ID"
+    emoji: "💰"
+    homepage: "https://github.com/NaeemTC/feishu-accounting-skill"
 ---
 
 # 飞书多维表格记账系统
