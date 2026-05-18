@@ -26,6 +26,15 @@ import sys
 from datetime import date, datetime
 from pathlib import Path
 
+# ── 自动加载 skill 目录下的 .env（飞书凭证）─────────────────────────────
+_SKILL_ENV = Path(__file__).parent.parent / ".env"
+if _SKILL_ENV.exists():
+    for line in _SKILL_ENV.read_text().splitlines():
+        line = line.strip()
+        if "=" in line and not line.startswith("#"):
+            k, v = line.split("=", 1)
+            os.environ.setdefault(k.strip(), v.strip())
+
 # ── 配置 ─────────────────────────────────────────────────────────────────────
 
 BILLS_DIR = Path(__file__).parent.parent / "bills"
@@ -64,8 +73,8 @@ FEISHU_CATEGORY_MAP = {
     "教育": "其它",
     "其他": "其它",
     "银行": "其它",
-    "工资": "其它",
-    "奖金": "其它",
+    "工资": "工资",
+    "奖金": "奖金",
     "兼职": "其它",
     "投资": "其它",
 }
@@ -305,13 +314,14 @@ def add_record(amount: float, bill_type: str, category: str,
 
     # 同步飞书
     if sync_feishu:
-        _check_feishu_config()  # 飞书同步前检查凭证
-        feishu_result = sync_to_feishu(amount, bill_type, category, note, date_str)
+        _check_feishu_config()
+        # 收入只写汇总表，不写明细表
+        if bill_type == "expense":
+            feishu_result = sync_to_feishu(amount, bill_type, category, note, date_str)
+            result["feishu"] = feishu_result
+            if not feishu_result["success"]:
+                result["warning"] = f"飞书明细表同步失败: {feishu_result.get('error')}"
         summary_result = sync_summary_to_feishu(amount, bill_type, date_str)
-        result["feishu"] = feishu_result
-        result["feishu_summary"] = summary_result
-        if not feishu_result["success"]:
-            result["warning"] = f"飞书明细表同步失败: {feishu_result.get('error')}"
         if not summary_result["success"]:
             result["warning"] = f"飞书汇总表同步失败: {summary_result.get('error')}"
 

@@ -113,7 +113,7 @@ feishu-cli auth login --device-code <device_code> --json
 feishu-cli bitable app create --name "个人记账本"
 ```
 
-**记录返回的 base_token**（格式如 `***REMOVED***`）。
+**记录返回的 base_token**（格式如 `Cq5d8wXzuQ3y0kvLFHn12s34pAB`）。
 
 ### Step 7：创建两个表
 
@@ -315,9 +315,9 @@ feishu-accounting/
 
 | 变量名 | 说明 | 示例 |
 |--------|------|------|
-| `FEISHU_BASE_TOKEN` | 多维表格 Base Token | `***REMOVED***` |
-| `FEISHU_DETAIL_TABLE_ID` | 明细表 ID | `tbl6Nr0zDhNEjjC7` |
-| `FEISHU_SUMMARY_TABLE_ID` | 汇总表 ID | `tblioEEIdjVLosqS` |
+| `FEISHU_BASE_TOKEN` | 多维表格 Base Token | `Cq5d8wXzuQ3y0kvLFHn12s34pAB` |
+| `FEISHU_DETAIL_TABLE_ID` | 明细表 ID | `tblxxxxxxxxxxxxxxxx` |
+| `FEISHU_SUMMARY_TABLE_ID` | 汇总表 ID | `tblyyyyyyyyyyyyyyyy` |
 
 ---
 
