@@ -63,21 +63,21 @@
 
 ## 🔧 安装 Skill（给 AI 助手用）
 
-如果你有自己的 AI 助手（基于 Hermes Agent），可以安装记账 Skill，让 AI 帮你完成飞书配置和日常记账：
+想让你的 AI 助手帮你记账？直接把下面这句话发给它就行，剩下的 AI 自己会搞定：
 
-```bash
-# 把 skill 目录复制到 AI 助手的数据目录
-cp -r skills/feishu-accounting ~/.hermes/skills/
+```
+帮我安装这个记账技能，项目地址：https://github.com/NaeemTC/ai-assistant-accounting
 
-# 在 skill 目录下创建 .env 文件（record_bill.py 会自动加载）
-cat > ~/.hermes/skills/feishu-accounting/.env << 'EOF'
-FEISHU_BASE_TOKEN="你的base_token"
-FEISHU_DETAIL_TABLE_ID="你的明细表ID"
-FEISHU_SUMMARY_TABLE_ID="你的汇总表ID"
-EOF
+这是一个飞书多维表格记账系统，支持自然语言记账、图片记账、月度统计、分类分析。数据存在你自己的飞书里，不需要服务器。
 ```
 
-详细配置说明见 [feishu-accounting/SKILL.md](skills/feishu-accounting/SKILL.md)。
+> AI 收到后会：读取仓库里的 `skills/feishu-accounting/SKILL.md` → 安装技能 → 引导你在飞书创建应用和表格 → 配置好凭证 → 开始记账。全程对话完成，零手动操作。
+
+如果你用的 AI 助手支持技能安装链接，也可以直接丢这个链接给它：
+
+```
+https://github.com/NaeemTC/ai-assistant-accounting/tree/main/skills/feishu-accounting
+```
 
 ---
 
@@ -87,7 +87,7 @@ EOF
 
 ### 方式一：让 AI 帮你一键配置（推荐）
 
-直接对 AI 助手说：
+已经装好 Skill 后，直接对 AI 说：
 
 ```
 我想用飞书记账
