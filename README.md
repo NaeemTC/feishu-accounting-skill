@@ -1,4 +1,4 @@
-# 🤖 飞书 AI 记账
+# 🤖 Agent记账App
 
 <img src="assets/images/icon.png" width="120" height="120" align="center" />
 
