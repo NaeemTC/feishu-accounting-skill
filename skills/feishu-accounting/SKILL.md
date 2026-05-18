@@ -188,24 +188,24 @@ feishu-cli bitable field create --base-token $BASE_TOKEN --table-id $SUMMARY_TAB
 
 ### Step 10：配置凭证（让 record_bill.py 能用）
 
-**AI 执行**，将凭证写入环境变量或 .env 文件：
+**AI 执行**，在 skill 目录下创建 `.env` 文件（`record_bill.py` 启动时会自动加载）：
 
 ```bash
-# 写入 .env（后续 crontab / 手动调用时 source）
-echo "FEISHU_BASE_TOKEN=$BASE_TOKEN" >> ~/.feishu-accounting.env
-echo "FEISHU_DETAIL_TABLE_ID=$DETAIL_TABLE_ID" >> ~/.feishu-accounting.env
-echo "FEISHU_SUMMARY_TABLE_ID=$SUMMARY_TABLE_ID" >> ~/.feishu-accounting.env
+# 在技能目录创建 .env（record_bill.py 会自动从同目录读取）
+cat > /path/to/feishu-accounting/.env << 'EOF'
+FEISHU_BASE_TOKEN=$BASE_TOKEN
+FEISHU_DETAIL_TABLE_ID=$DETAIL_TABLE_ID
+FEISHU_SUMMARY_TABLE_ID=$SUMMARY_TABLE_ID
+EOF
 ```
 
-或直接告诉用户如何手动配置：
+或通过环境变量注入（适合临时调用）：
 
-> **把以下内容添加到你的 shell 配置文件**（`~/.bashrc` 或 `~/.zshrc`）：
-> ```bash
-> export FEISHU_BASE_TOKEN="你的base_token"
-> export FEISHU_DETAIL_TABLE_ID="你的明细表ID"
-> export FEISHU_SUMMARY_TABLE_ID="你的汇总表ID"
-> ```
-> 然后 `source ~/.bashrc` 生效。
+```bash
+export FEISHU_BASE_TOKEN="你的base_token"
+export FEISHU_DETAIL_TABLE_ID="你的明细表ID"
+export FEISHU_SUMMARY_TABLE_ID="你的汇总表ID"
+```
 
 ---
 
@@ -234,18 +234,17 @@ echo "FEISHU_SUMMARY_TABLE_ID=${FEISHU_SUMMARY_TABLE_ID:-未设置}"
 ### 记账命令
 
 ```bash
-# 方式一：设置环境变量后调用（推荐）
-source ~/.feishu-accounting.env
-/usr/bin/python3.14 /path/to/scripts/record_bill.py \
+# 方式一：直接调用（脚本自动加载同目录 .env）
+python3 /path/to/scripts/record_bill.py \
   --amount 23.40 --type expense --category 餐饮 --note "午饭"
 
-# 方式二：一条命令（shell 变量注入）
+# 方式二：环境变量注入（适合临时调用）
 FEISHU_BASE_TOKEN=xxx FEISHU_DETAIL_TABLE_ID=xxx FEISHU_SUMMARY_TABLE_ID=xxx \
-  /usr/bin/python3.14 /path/to/scripts/record_bill.py \
+  python3 /path/to/scripts/record_bill.py \
   --amount 23.40 --type expense --category 餐饮 --note "午饭"
 ```
 
-**⚠️ Python 版本**：必须用 `python3.14`，系统默认的 python3.11 不兼容（openpyxl/pandas 版本冲突）。
+**⚠️ Python 版本**：确保本机已安装 `python3`（Python 3.9+ 均可），可通过 `python3 --version` 确认。
 
 ### 完整命令参数
 
@@ -263,13 +262,13 @@ FEISHU_BASE_TOKEN=xxx FEISHU_DETAIL_TABLE_ID=xxx FEISHU_SUMMARY_TABLE_ID=xxx \
 
 ```bash
 # 今日账单
-/usr/bin/python3.14 scripts/record_bill.py --list
+python3 scripts/record_bill.py --list
 
 # 指定日期
-/usr/bin/python3.14 scripts/record_bill.py --list --date 2026-05-15
+python3 scripts/record_bill.py --list --date 2026-05-15
 
 # 月度汇总
-/usr/bin/python3.14 scripts/record_bill.py --summary --month 2026-05
+python3 scripts/record_bill.py --summary --month 2026-05
 ```
 
 ### 图片记账

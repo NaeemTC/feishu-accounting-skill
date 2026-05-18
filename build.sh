@@ -17,5 +17,4 @@ JSON
 
 echo "=== gradle build ==="
 cd android
-GRADLE_OPTS="-Dhttp.proxyHost=127.0.0.1 -Dhttp.proxyPort=7890 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=7890" \
-  ./gradlew assembleDebug
+./gradlew assembleDebug

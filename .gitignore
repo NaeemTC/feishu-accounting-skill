@@ -30,3 +30,6 @@ android/app/build/
 android/capacitor-cordova-android-plugins/build/
 *.keystore
 
+# 环境变量文件（每人凭证不同）
+.env
+

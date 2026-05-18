@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-cd /home/naeem/feishu-dashboard-app
+cd "$(dirname "$0")"
 
 echo ">>> npx cap sync android"
 npx cap sync android
@@ -18,5 +18,5 @@ echo ">>> 已修复"
 echo ">>> 构建 APK"
 cd android
 ./gradlew assembleRelease
-cp app/build/outputs/apk/release/app-release.apk /home/naeem/AI-Agent-Personal-Accounting.apk
-echo ">>> APK 已输出到 /home/naeem/AI-Agent-Personal-Accounting.apk"
+cp app/build/outputs/apk/release/app-release.apk ./app-release.apk
+echo ">>> APK 已输出到 $(pwd)/app-release.apk"
