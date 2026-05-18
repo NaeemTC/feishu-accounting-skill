@@ -180,7 +180,7 @@ feishu-cli bitable field create --base-token $BASE_TOKEN --table-id $SUMMARY_TAB
 ```
 ✅ 飞书记账配置完成！
 
-请保存以下凭证（后面记账要用）：
+请保存以下凭证（记账App首次配置时会用）：
 - Base Token：<base_token>
 - 明细表 Table ID：<detail_table_id>
 - 汇总表 Table ID：<summary_table_id>
