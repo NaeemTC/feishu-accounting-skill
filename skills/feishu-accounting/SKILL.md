@@ -175,15 +175,22 @@ feishu-cli bitable field create --base-token $BASE_TOKEN --table-id $SUMMARY_TAB
 
 ### Step 9：输出凭证
 
+> ⚠️ **App ID 和 App Secret 来自用户在第 2 步提供的信息**，AI 应在此处引用用户之前给出的值，确保证书完整。
+
 **把以下信息发送给用户：**
 
 ```
-✅ 飞书记账配置完成！
+|✅ 飞书记账配置完成！
 
-请保存以下凭证（记账App首次配置时会用）：
-- Base Token：<base_token>
-- 明细表 Table ID：<detail_table_id>
-- 汇总表 Table ID：<summary_table_id>
+请保存以下 5 个凭证——首次打开手机 App 时需要按顺序输入：
+
+1. App ID：<用户在第2步提供的 app_id>
+2. App Secret：<用户在第2步提供的 app_secret>
+3. Base Token：<base_token>
+4. 明细表 Table ID：<detail_table_id>
+5. 汇总表 Table ID：<summary_table_id>
+
+输入这 5 项后，App 就能正常查看你的账单数据了。
 ```
 
 ### Step 10：配置凭证（让 record_bill.py 能用）
