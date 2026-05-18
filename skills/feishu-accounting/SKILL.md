@@ -1,6 +1,6 @@
 ---
 name: feishu-accounting
-description: 飞书多维表格记账系统完整技能包。包含两步：1）运行 feishu-accounting-setup 引导用户完成飞书应用创建、多维表格搭建、凭证获取；2）使用 record_bill.py 进行日常记账（支持本地存储 + 飞书多维表格同步，自动同时写入明细表和汇总表）。
+description: 飞书多维表格记账系统完整技能包。包含两步：1）运行 feishu-accounting-setup 引导用户完成飞书应用创建、多维表格搭建、凭证获取；2）使用 record_bill.py 进行日常记账（支持本地存储 + 飞书多维表格同步）。**同步规则：支出写明细表+汇总表，收入只写汇总表（明细表仅用于 App 仪表盘展示消费明细）。**
 version: 1.0.0
 author: Naeem
 homepage: https://github.com/NaeemTC/feishu-accounting-skill
@@ -298,6 +298,8 @@ FEISHU_BASE_TOKEN=xxx FEISHU_DETAIL_TABLE_ID=xxx FEISHU_SUMMARY_TABLE_ID=xxx \
 | `--date` | | 日期 YYYY-MM-DD，默认今天 |
 | `--feishu` | | 同步飞书（默认开启） |
 | `--no-feishu` | | 禁用飞书同步，仅写本地 |
+
+> **⚠️ 飞书同步规则**：`--type expense`（支出）同时写入明细表和汇总表；`--type income`（收入）仅写入汇总表，明细表只存支出记录（用于 App 仪表盘分类图表展示）。
 
 ### 查询命令
 
