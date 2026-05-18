@@ -207,6 +207,17 @@ export FEISHU_DETAIL_TABLE_ID="你的明细表ID"
 export FEISHU_SUMMARY_TABLE_ID="你的汇总表ID"
 ```
 
+### Step 11：询问用户是否安装 App（仪表盘）
+
+配置完成后，**询问用户**要不要装 Android 仪表盘 App 来看图表和数据：
+
+> 飞书记账后台已经配好了！要不要装个手机 App 来看图表？
+>
+> - **📦 下载发布版**（推荐，即装即用）：https://github.com/NaeemTC/feishu-accounting-skill/releases/latest/download/app-release.apk
+> - **🔧 从源码构建**：需要 Node.js + Android SDK，克隆仓库后执行 `bash sync.sh`
+
+用户选发布版就直接发下载链接，选自己打就引导构建。
+
 ---
 
 ## 第二阶段：Usage（日常记账）
