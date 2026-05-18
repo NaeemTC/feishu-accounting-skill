@@ -3,7 +3,7 @@ name: feishu-accounting
 description: 飞书多维表格记账系统完整技能包。包含两步：1）运行 feishu-accounting-setup 引导用户完成飞书应用创建、多维表格搭建、凭证获取；2）使用 record_bill.py 进行日常记账（支持本地存储 + 飞书多维表格同步，自动同时写入明细表和汇总表）。
 version: 1.0.0
 author: Naeem
-homepage: https://github.com/NaeemTC/ai-assistant-accounting
+homepage: https://github.com/NaeemTC/feishu-accounting-skill
 tags: [feishu, bitable, accounting, setup]
 ---
 
