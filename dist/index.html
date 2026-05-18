@@ -9,11 +9,12 @@
 <title>记账</title>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
 <style>
-:root{--bg:#0f0f1a;--card:#1a1a2e;--card2:#16213e;--accent:#4facfe;--income:#00c853;--expense:#ff5252;--net:#ffd600;--text:#e0e0e0;--dim:#888;--border:#2a2a4a;--r:16px}
+:root{--bg:#0f0f1a;--card:#1a1a2e;--card2:#16213e;--accent:#4facfe;--income:#00c853;--expense:#ff5252;--net:#ffd600;--text:#e0e0e0;--dim:#888;--border:#2a2a4a;--shadow:rgba(0,0,0,.25);--r:16px;--h4-border:#4facfe}
+[data-theme="light"]{--bg:#f5f0e8;--card:#ffffff;--card2:#f0ebe3;--accent:#6b9fd4;--income:#4caf50;--expense:#e57373;--net:#f9a825;--text:#3d3a36;--dim:#9e9a95;--border:#ddd6cc;--shadow:rgba(0,0,0,.08);--h4-border:#6b9fd4}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-tap-highlight-color:transparent;overflow-y:scroll}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-tap-highlight-color:transparent;overflow-y:scroll;transition:background .35s,color .35s}
 .hidden{display:none!important}
-.status-page{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:32px 24px;text-align:center}
+.status-page{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:32px 24px;text-align:center;transition:background .35s}
 .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:16px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .status-page p{color:var(--dim);font-size:14px;max-width:300px;word-break:break-all}
@@ -23,61 +24,53 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .status-page pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:11px;color:var(--expense);text-align:left;max-width:100%;overflow-x:auto;margin-top:12px;white-space:pre-wrap;word-break:break-all}
 /* ─── 登录页 ─── */
 .login-page{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:32px 24px}
-.login-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:28px 24px;width:100%;max-width:380px}
+.login-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:28px 24px;width:100%;max-width:380px;box-shadow:0 4px 20px var(--shadow);transition:background .35s,border .35s,box-shadow .35s}
 .login-card h2{font-size:20px;font-weight:700;background:linear-gradient(135deg,#4facfe,#00c853);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;text-align:center}
 .login-card .sub{font-size:12px;color:var(--dim);text-align:center;margin-bottom:24px}
 .f-row{margin-bottom:14px}
 .f-row label{display:block;font-size:12px;color:var(--dim);margin-bottom:5px}
-.f-row input{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-size:14px;outline:none;transition:border-color .2s}
+.f-row input{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-size:14px;outline:none;transition:border-color .2s,background .35s,color .35s}
 .f-row input:focus{border-color:var(--accent)}
 .f-row .hint{font-size:10px;color:var(--dim);margin-top:3px}
 .lbtn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:12px;font-size:15px;font-weight:600;cursor:pointer;margin-top:6px}
 .lbtn:active{opacity:.85}
 /* ─── 顶部导航 ─── */
-.header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
-.title-group{display:flex;align-items:center;gap:8px}
+.header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;box-shadow:0 2px 12px var(--shadow);transition:background .35s,border .35s,box-shadow .35s}
+.title-group{display:flex;align-items:center;gap:6px}
 .header h2{font-size:17px;font-weight:700;background:linear-gradient(135deg,#4facfe,#00c853);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .month-sel{display:flex;align-items:center;gap:6px}
-.mbtn{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mbtn{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s,border .2s,color .2s,transform .2s,box-shadow .2s}
 .mbtn:active{background:var(--border)}
 .mbtn.sum{width:34px;height:34px;font-size:15px;font-weight:700}
 .mbtn.pressed{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important;transform:scale(.93);box-shadow:inset 0 2px 6px rgba(0,0,0,.45)}
-.mlabel{font-size:13px;font-weight:600;min-width:66px;text-align:center}
-.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 12px 6px}
-.card{background:var(--card);border-radius:var(--r);padding:12px 10px;border:1px solid var(--border);display:flex;flex-direction:column;gap:4px}
+.mbtn.theme{width:30px;height:30px;font-size:14px}
+.mlabel{font-size:13px;font-weight:600;min-width:66px;text-align:center;transition:color .35s}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 12px 8px}
+.card{background:var(--card);border-radius:var(--r);padding:14px 12px;border:1px solid var(--border);display:flex;flex-direction:column;gap:5px;box-shadow:0 4px 14px var(--shadow);transition:background .35s,border .35s,box-shadow .35s}
 .card-lbl{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
-.card-val{display:block;font-size:clamp(12px,4.5vw,17px);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.card-val{display:block;font-size:clamp(13px,4.8vw,18px);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .card-val.exp{color:var(--expense)}.card-val.inc{color:var(--income)}.card-val.nt{color:var(--net)}
-.charts{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:6px 12px}
-.ch{background:var(--card);border-radius:var(--r);padding:10px;border:1px solid var(--border);overflow:hidden}
-.ch h4{font-size:11px;color:var(--dim);margin-bottom:6px}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:8px 12px}
+.ch{background:var(--card);border-radius:var(--r);padding:12px;border:1px solid var(--border);overflow:hidden;box-shadow:0 2px 10px var(--shadow);transition:background .35s,border .35s,box-shadow .35s}
+.ch h4{font-size:12px;color:var(--dim);margin-bottom:8px;padding-left:8px;border-left:3px solid var(--h4-border);transition:color .35s,border-color .35s}
 .ch .box{height:180px}
 .ch-full{grid-column:1/-1}
 .ch-full .box{height:200px}
 .ch-pie{grid-column:1/-1}
-.ch-pie .box{height:280px}
-.cats{padding:6px 12px}
-.ci{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
-.ci:last-child{border-bottom:none}
-.ci-l{display:flex;align-items:center;gap:8px}
-.ci-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.ci-name{font-size:13px}
-.ci-r{text-align:right}
-.ci-amt{font-size:13px;font-weight:600}
-.ci-pct{font-size:10px;color:var(--dim)}
-.section-title{padding:14px 12px 6px;font-size:13px;font-weight:600;color:var(--dim)}
+.ch-pie .box{height:220px}
+.section-title{padding:16px 12px 8px;font-size:13px;font-weight:600;color:var(--dim);transition:color .35s}
 .details{padding:0 12px}
-.di{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);gap:6px}
+.di{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);gap:6px;transition:border-color .35s}
 .di:last-child{border-bottom:none}
-.di-l{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.di-l{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .di-date{font-size:11px;color:var(--dim)}
 .di-txt{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.di-r{display:flex;align-items:center;gap:6px;flex-shrink:0}
-.di-cat{font-size:10px;color:var(--dim);background:var(--card2);padding:1px 5px;border-radius:3px}
+.di-r{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.di-cat{font-size:10px;color:var(--dim);background:var(--card2);padding:2px 6px;border-radius:4px;transition:background .35s,color .35s}
 .di-amt{font-size:13px;font-weight:600;color:var(--expense)}
 .di-amt.inc{color:var(--income)}
 .pg{display:flex;justify-content:center;align-items:center;gap:12px;padding:10px 0 40px}
-.pg button{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:8px;width:66px;height:28px;font-size:11px;cursor:pointer}
+.pg button{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:8px;width:66px;height:28px;font-size:11px;cursor:pointer;transition:background .2s,border .2s,color .2s}
 .pg button:disabled{opacity:.4;cursor:not-allowed}
 .pg-info{font-size:10px;color:var(--dim)}
 </style>
@@ -131,6 +124,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div class="header">
     <div class="title-group">
       <h2>记账</h2>
+      <button class="mbtn theme" id="btn-theme" title="切换主题">☀</button>
       <button class="mbtn sum" id="btn-sum" title="全部汇总">∑</button>
     </div>
     <div class="month-sel">
@@ -150,7 +144,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <div class="ch"><h4>月度对比</h4><div class="box" id="c-bar"></div></div>
     <div class="ch"><h4>日支出趋势</h4><div class="box" id="c-line"></div></div>
   </div>
-  <div class="cats" id="cat-list"></div>
   <div class="section-title">📋 消费明细</div>
   <div class="details" id="detail-list"></div>
   <div class="pg">
@@ -171,6 +164,9 @@ var FI={text:0,month:1,amount:2,category:3};
 var SI={no:0,desc:1,month:2,type:3,amount:4};
 
 var COLORS={餐饮:'#ff6b6b',购物:'#4dabf7',交通:'#ffa94d',娱乐:'#9775fa',通讯:'#69db7c',生活:'#ffd43b',其它:'#868e96',其他:'#868e96',收入:'#00c853'};
+var THEMES={dark:{tooltipBg:'#1a1a2e',tooltipBorder:'#2a2a4a',tooltipText:'#e0e0e0',axisLabel:'#888',splitLine:'#222',axisLine:'#2a2a4a',yLabel:'#ddd',barLabel:'#aaa',pieLabel:'#aaa',labelLine:'#555',itemBorder:'#0f0f1a'},light:{tooltipBg:'#ffffff',tooltipBorder:'#ddd6cc',tooltipText:'#3d3a36',axisLabel:'#9e9a95',splitLine:'#e8e2d8',axisLine:'#ddd6cc',yLabel:'#3d3a36',barLabel:'#9e9a95',pieLabel:'#7a7670',labelLine:'#ccc',itemBorder:'#fff'}};
+var activeTheme=localStorage.getItem('fa_theme')||'dark';
+var CUR_THEME=THEMES[activeTheme];
 var now=new Date();
 var curMonth=now.getFullYear()+'-'+pad2(now.getMonth()+1);
 var summaryRecords=[];
@@ -182,6 +178,19 @@ var pieChart=null,barChart=null,lineChart=null,hbarChart=null;
 var cachedToken='',cachedTokenExp=0;
 
 function pad2(n){return n<10?'0'+n:''+n}
+
+function applyTheme(theme){
+  activeTheme=theme;CUR_THEME=THEMES[theme];
+  document.documentElement.setAttribute('data-theme',theme);
+  document.getElementById('btn-theme').textContent=theme==='dark'?'☀':'🌙';
+  localStorage.setItem('fa_theme',theme);
+  if(document.getElementById('app').classList.contains('hidden'))return;
+  if(pieChart){pieChart.dispose();pieChart=null}
+  if(hbarChart){hbarChart.dispose();hbarChart=null}
+  if(barChart){barChart.dispose();barChart=null}
+  if(lineChart){lineChart.dispose();lineChart=null}
+  render();
+}
 
 // ═══ 本地存储 ═══
 function loadConfig(){
@@ -348,20 +357,20 @@ function renderPie(cats){
   if(!pieChart)pieChart=echarts.init(el,null,{renderer:'svg'});
   if(!cats.length){
     pieChart.clear();
-    pieChart.setOption({title:{text:'暂无数据',left:'center',top:'center',textStyle:{color:'#666',fontSize:13}}});
+    pieChart.setOption({title:{text:'暂无数据',left:'center',top:'center',textStyle:{color:CUR_THEME.axisLabel,fontSize:13}}});
     return;
   }
   pieChart.setOption({
     backgroundColor:'transparent',
     title:{show:false},
-    tooltip:{trigger:'item',formatter:function(p){return p.name+': ¥'+p.value.toFixed(2)+' ('+p.percent+'%)'},backgroundColor:'#1a1a2e',borderColor:'#2a2a4a',textStyle:{color:'#e0e0e0',fontSize:12}},
+    tooltip:{trigger:'item',formatter:function(p){return p.name+': ¥'+p.value.toFixed(2)+' ('+p.percent+'%)'},backgroundColor:CUR_THEME.tooltipBg,borderColor:CUR_THEME.tooltipBorder,textStyle:{color:CUR_THEME.tooltipText,fontSize:12}},
     legend:{show:false},
     series:[{
       type:'pie',radius:['28%','62%'],center:['50%','52%'],
       avoidLabelOverlap:true,
-      itemStyle:{borderRadius:5,borderColor:'#0f0f1a',borderWidth:2},
-      label:{show:true,formatter:'{b}\n{d}%',fontSize:11,color:'#aaa',lineHeight:15},
-      labelLine:{lineStyle:{color:'#555'},length:8,length2:10},
+      itemStyle:{borderRadius:5,borderColor:CUR_THEME.itemBorder,borderWidth:2},
+      label:{show:true,formatter:'{b}\n{d}%',fontSize:11,color:CUR_THEME.pieLabel,lineHeight:15},
+      labelLine:{lineStyle:{color:CUR_THEME.labelLine},length:8,length2:10},
       emphasis:{label:{show:true,fontSize:13,fontWeight:'bold'}},
       data:cats.map(function(c){return{name:c.name,value:Math.round(c.amount*100)/100,itemStyle:{color:c.color}}})
     }]
@@ -374,16 +383,16 @@ function renderHBar(cats){
   if(!hbarChart)hbarChart=echarts.init(el,null,{renderer:'svg'});
   if(!cats.length){
     hbarChart.clear();
-    hbarChart.setOption({title:{text:'暂无数据',left:'center',top:'center',textStyle:{color:'#666',fontSize:13}}});
+    hbarChart.setOption({title:{text:'暂无数据',left:'center',top:'center',textStyle:{color:CUR_THEME.axisLabel,fontSize:13}}});
     return;
   }
   hbarChart.setOption({
     backgroundColor:'transparent',
-    tooltip:{trigger:'axis',axisPointer:{type:'shadow'},formatter:function(p){return p[0].name+': ¥'+p[0].value.toFixed(2)},backgroundColor:'#1a1a2e',borderColor:'#2a2a4a',textStyle:{color:'#e0e0e0',fontSize:12}},
-    grid:{left:56,right:64,top:6,bottom:10},
-    xAxis:{type:'value',axisLabel:{color:'#888',fontSize:10,formatter:function(v){return v>=1000?Math.round(v/1000)+'k':v}},splitLine:{lineStyle:{color:'#222'}},axisLine:{show:false}},
-    yAxis:{type:'category',data:cats.map(function(c){return c.name}),axisLine:{show:false},axisTick:{show:false},axisLabel:{color:'#ddd',fontSize:11},inverse:true},
-    series:[{type:'bar',data:cats.map(function(c){return{value:Math.round(c.amount*100)/100,itemStyle:{color:c.color,borderRadius:[0,4,4,0]}}}),barMaxWidth:22,label:{show:true,position:'right',formatter:function(p){return '¥'+p.value.toFixed(2)},color:'#aaa',fontSize:10}}]
+    tooltip:{trigger:'axis',axisPointer:{type:'shadow'},formatter:function(p){return p[0].name+': ¥'+p[0].value.toFixed(2)},backgroundColor:CUR_THEME.tooltipBg,borderColor:CUR_THEME.tooltipBorder,textStyle:{color:CUR_THEME.tooltipText,fontSize:12}},
+    grid:{left:56,right:64,top:6,bottom:24},
+    xAxis:{type:'value',splitNumber:4,axisLabel:{color:CUR_THEME.axisLabel,fontSize:10,formatter:function(v){return v>=1000?Math.round(v/1000)+'k':v}},splitLine:{lineStyle:{color:CUR_THEME.splitLine}},axisLine:{show:false}},
+    yAxis:{type:'category',data:cats.map(function(c){return c.name}),axisLine:{show:false},axisTick:{show:false},axisLabel:{color:CUR_THEME.yLabel,fontSize:11},inverse:true},
+    series:[{type:'bar',data:cats.map(function(c){return{value:Math.round(c.amount*100)/100,itemStyle:{color:c.color,borderRadius:[0,4,4,0]}}}),barMaxWidth:22,label:{show:true,position:'right',formatter:function(p){return '¥'+p.value.toFixed(2)},color:CUR_THEME.barLabel,fontSize:10}}]
   });
 }
 
@@ -403,10 +412,10 @@ function renderBar(){
       var s=p[0].name+'<br/>';
       for(var i=0;i<p.length;i++)s+='<span style="color:'+p[i].color+'">●</span> '+p[i].seriesName+': ¥'+p[i].value.toFixed(2)+'<br/>';
       return s;
-    },backgroundColor:'#1a1a2e',borderColor:'#2a2a4a',textStyle:{color:'#e0e0e0',fontSize:12}},
+    },backgroundColor:CUR_THEME.tooltipBg,borderColor:CUR_THEME.tooltipBorder,textStyle:{color:CUR_THEME.tooltipText,fontSize:12}},
     grid:{left:42,right:10,top:10,bottom:22},
-    xAxis:{type:'category',data:ms.map(function(m){return m.slice(5)}),axisLabel:{color:'#888',fontSize:10},axisLine:{lineStyle:{color:'#2a2a4a'}}},
-    yAxis:{type:'value',axisLabel:{color:'#888',fontSize:10,formatter:function(v){return v>=1000?(v/1000)+'k':v}},splitLine:{lineStyle:{color:'#222'}},axisLine:{show:false}},
+    xAxis:{type:'category',data:ms.map(function(m){return m.slice(5)}),axisLabel:{color:CUR_THEME.axisLabel,fontSize:10},axisLine:{lineStyle:{color:CUR_THEME.axisLine}}},
+    yAxis:{type:'value',axisLabel:{color:CUR_THEME.axisLabel,fontSize:10,formatter:function(v){return v>=1000?(v/1000)+'k':v}},splitLine:{lineStyle:{color:CUR_THEME.splitLine}},axisLine:{show:false}},
     series:[
       {name:'收入',type:'bar',data:incD,itemStyle:{color:'#00c853',borderRadius:[3,3,0,0]},barMaxWidth:24},
       {name:'支出',type:'bar',data:expD,itemStyle:{color:'#ff5252',borderRadius:[3,3,0,0]},barMaxWidth:24}
@@ -435,22 +444,12 @@ function renderLine(month){
   lineChart.setOption({
     backgroundColor:'transparent',
     title:{show:false},
-    tooltip:{trigger:'axis',confine:true,formatter:function(p){return p[0].name+'<br/><span style="color:'+p[0].color+'">●</span> ¥'+p[0].value.toFixed(2)},backgroundColor:'#1a1a2e',borderColor:'#2a2a4a',textStyle:{color:'#e0e0e0',fontSize:12}},
+    tooltip:{trigger:'axis',confine:true,formatter:function(p){return p[0].name+'<br/><span style="color:'+p[0].color+'">●</span> ¥'+p[0].value.toFixed(2)},backgroundColor:CUR_THEME.tooltipBg,borderColor:CUR_THEME.tooltipBorder,textStyle:{color:CUR_THEME.tooltipText,fontSize:12}},
     grid:{left:42,right:14,top:10,bottom:22},
-    xAxis:{type:'category',data:days.map(function(d){return d.slice(5)}),axisLabel:{color:'#888',fontSize:10},axisLine:{lineStyle:{color:'#2a2a4a'}}},
-    yAxis:{type:'value',axisLabel:{color:'#888',fontSize:10,formatter:function(v){return '¥'+v}},splitLine:{lineStyle:{color:'#222'}},axisLine:{show:false}},
+    xAxis:{type:'category',data:days.map(function(d){return d.slice(5)}),axisLabel:{color:CUR_THEME.axisLabel,fontSize:10},axisLine:{lineStyle:{color:CUR_THEME.axisLine}}},
+    yAxis:{type:'value',axisLabel:{color:CUR_THEME.axisLabel,fontSize:10,formatter:function(v){return '¥'+v}},splitLine:{lineStyle:{color:CUR_THEME.splitLine}},axisLine:{show:false}},
     series:[{type:'line',data:days.map(function(d){return Math.round(dayMap[d]*100)/100}),smooth:true,symbol:'circle',symbolSize:7,lineStyle:{color:'#4facfe',width:2.5},itemStyle:{color:'#4facfe'},areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(79,172,254,0.25)'},{offset:1,color:'rgba(79,172,254,0)'}]}}}]
   });
-}
-
-function renderCats(cats,expTotal){
-  var html='';
-  for(var i=0;i<cats.length;i++){
-    var c=cats[i];
-    var pct=expTotal>0?Math.round(c.amount/expTotal*100):0;
-    html+='<div class="ci"><div class="ci-l"><div class="ci-dot" style="background:'+c.color+'"></div><span class="ci-name">'+c.name+'</span></div><div class="ci-r"><div class="ci-amt" style="color:'+c.color+'">¥'+c.amount.toFixed(2)+'</div><div class="ci-pct">'+pct+'%</div></div></div>';
-  }
-  document.getElementById('cat-list').innerHTML=html;
 }
 
 function renderDetails(month){
@@ -495,7 +494,6 @@ function render(){
   renderHBar(cats);
   renderBar();
   renderLine(month);
-  renderCats(cats,sm.expense);
   renderDetails(month);
   document.getElementById('mlabel').textContent=isTotalMode?'全部':curMonth;
   var btnPrev=document.getElementById('btn-prev');
@@ -560,6 +558,7 @@ document.getElementById('btn-login').addEventListener('click',function(){
 // ═══ 初始化 ═══
 function init(){
   loadConfig();
+  applyTheme(activeTheme);
   // 检查是否已有完整凭证
   if(!APP_ID||!APP_SECRET||!BASE||!DETAIL_TABLE||!SUMMARY_TABLE){
     showLogin();
@@ -604,6 +603,9 @@ document.getElementById('btn-sum').addEventListener('click',function(){
   btnNext.disabled=isTotalMode;
   btnSum.classList.toggle('pressed',isTotalMode);
   render();
+});
+document.getElementById('btn-theme').addEventListener('click',function(){
+  applyTheme(activeTheme==='dark'?'light':'dark');
 });
 document.getElementById('pg-prev').addEventListener('click',function(){
   detailPage--;renderDetails(isTotalMode?null:curMonth);
