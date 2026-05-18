@@ -321,13 +321,13 @@ function getDashRecords(month){
   }
   out.sort(function(a,b){
     var ta=a[FI.text]||'',tb=b[FI.text]||'';
-    var da=ta.match(/(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})/);
-    var db=tb.match(/(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})/);
-    var sa=da?da[1]+' '+da[2]:ta.match(/(\d{4}-\d{2}-\d{2})/);
-    var sb=db?db[1]+' '+db[2]:tb.match(/(\d{4}-\d{2}-\d{2})/);
-    sa=(sa?sa[0]||sa:'')+(da?'':' 00:00');
-    sb=(sb?sb[0]||sb:'')+(db?'':' 00:00');
-    return sb.localeCompare(sa);
+    function sk(t){
+      var m=t.match(/(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})/);
+      if(m)return m[1]+' '+m[2];
+      m=t.match(/(\d{4}-\d{2}-\d{2})/);
+      return m?m[0]+' 00:00':'';
+    }
+    return sk(tb).localeCompare(sk(ta));
   });
   return out;
 }
@@ -350,6 +350,15 @@ function renderSummary(inc,exp){
   var el=document.getElementById('v-net');
   el.textContent=(net>=0?'+\u2060':'-\u2060')+fmt(Math.abs(net));
   el.className='card-val '+(net>=0?'nt':'exp');
+  // 自适应字号：如果任意卡片溢出，三个同步缩小直到刚好全部显示
+  var ve=document.getElementById('v-exp'),vi=document.getElementById('v-inc'),vn=document.getElementById('v-net');
+  ve.style.fontSize='';vi.style.fontSize='';vn.style.fontSize='';
+  if(ve.scrollWidth>ve.clientWidth||vi.scrollWidth>vi.clientWidth||vn.scrollWidth>vn.clientWidth){
+    for(var fs=18;fs>=10;fs-=2){
+      ve.style.fontSize=vi.style.fontSize=vn.style.fontSize=fs+'px';
+      if(ve.scrollWidth<=ve.clientWidth&&vi.scrollWidth<=vi.clientWidth&&vn.scrollWidth<=vn.clientWidth)break;
+    }
+  }
 }
 
 function renderPie(cats){
