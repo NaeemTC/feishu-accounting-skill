@@ -350,15 +350,20 @@ function renderSummary(inc,exp){
   var el=document.getElementById('v-net');
   el.textContent=(net>=0?'+\u2060':'-\u2060')+fmt(Math.abs(net));
   el.className='card-val '+(net>=0?'nt':'exp');
-  // 自适应字号：如果任意卡片溢出，三个同步缩小直到刚好全部显示
-  var ve=document.getElementById('v-exp'),vi=document.getElementById('v-inc'),vn=document.getElementById('v-net');
-  ve.style.fontSize='';vi.style.fontSize='';vn.style.fontSize='';
-  if(ve.scrollWidth>ve.clientWidth||vi.scrollWidth>vi.clientWidth||vn.scrollWidth>vn.clientWidth){
-    for(var fs=18;fs>=10;fs-=2){
-      ve.style.fontSize=vi.style.fontSize=vn.style.fontSize=fs+'px';
-      if(ve.scrollWidth<=ve.clientWidth&&vi.scrollWidth<=vi.clientWidth&&vn.scrollWidth<=vn.clientWidth)break;
+  // 自适应字号：用 canvas 测量文本实际宽度，三个卡片同步缩放
+  var vals=[document.getElementById('v-exp'),document.getElementById('v-inc'),document.getElementById('v-net')];
+  for(var i=0;i<vals.length;i++)vals[i].style.fontSize='';
+  var cardW=document.querySelector('.card').clientWidth-24;
+  var c=document.createElement('canvas'),ctx=c.getContext('2d');
+  for(var fs=18;fs>=10;fs-=2){
+    ctx.font='700 '+fs+'px -apple-system,BlinkMacSystemFont,sans-serif';
+    var bad=false;
+    for(var i=0;i<vals.length;i++){
+      if(ctx.measureText(vals[i].textContent).width>cardW-6){bad=true;break;}
     }
+    if(!bad){for(var i=0;i<vals.length;i++)vals[i].style.fontSize=fs+'px';return;}
   }
+  for(var i=0;i<vals.length;i++)vals[i].style.fontSize='10px';
 }
 
 function renderPie(cats){
