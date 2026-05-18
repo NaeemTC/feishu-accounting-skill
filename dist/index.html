@@ -43,7 +43,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .mbtn:active{background:var(--border)}
 .mbtn.sum{width:34px;height:34px;font-size:15px;font-weight:700}
 .mbtn.pressed{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important;transform:scale(.93);box-shadow:inset 0 2px 6px rgba(0,0,0,.45)}
-.mbtn.theme{width:30px;height:30px;font-size:14px}
+.mbtn.theme{width:34px;height:34px;font-size:16px}
 .mlabel{font-size:13px;font-weight:600;min-width:66px;text-align:center;transition:color .35s}
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 12px 8px}
 .card{background:var(--card);border-radius:var(--r);padding:14px 12px;border:1px solid var(--border);display:flex;flex-direction:column;gap:5px;box-shadow:0 4px 14px var(--shadow);transition:background .35s,border .35s,box-shadow .35s}
@@ -165,7 +165,7 @@ var SI={no:0,desc:1,month:2,type:3,amount:4};
 
 var COLORS={餐饮:'#ff6b6b',购物:'#4dabf7',交通:'#ffa94d',娱乐:'#9775fa',通讯:'#69db7c',生活:'#ffd43b',其它:'#868e96',其他:'#868e96',收入:'#00c853'};
 var THEMES={dark:{tooltipBg:'#1a1a2e',tooltipBorder:'#2a2a4a',tooltipText:'#e0e0e0',axisLabel:'#888',splitLine:'#222',axisLine:'#2a2a4a',yLabel:'#ddd',barLabel:'#aaa',pieLabel:'#aaa',labelLine:'#555',itemBorder:'#0f0f1a'},light:{tooltipBg:'#ffffff',tooltipBorder:'#ddd6cc',tooltipText:'#3d3a36',axisLabel:'#9e9a95',splitLine:'#e8e2d8',axisLine:'#ddd6cc',yLabel:'#3d3a36',barLabel:'#9e9a95',pieLabel:'#7a7670',labelLine:'#ccc',itemBorder:'#fff'}};
-var activeTheme=localStorage.getItem('fa_theme')||'dark';
+var activeTheme=localStorage.getItem('fa_theme')||'light';
 var CUR_THEME=THEMES[activeTheme];
 var now=new Date();
 var curMonth=now.getFullYear()+'-'+pad2(now.getMonth()+1);
@@ -320,12 +320,13 @@ function getDashRecords(month){
     out.push(r);
   }
   out.sort(function(a,b){
-    var da=(a[FI.text]||'').match(/(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})/);
-    var db=(b[FI.text]||'').match(/(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})/);
-    var sa=da?da[1]+' '+da[2]:(a[FI.text]||'').match(/(\d{4}-\d{2}-\d{2})/);
-    var sb=db?db[1]+' '+db[2]:(b[FI.text]||'').match(/(\d{4}-\d{2}-\d{2})/);
-    sa=sa?sa[0]||sa:'';
-    sb=sb?sb[0]||sb:'';
+    var ta=a[FI.text]||'',tb=b[FI.text]||'';
+    var da=ta.match(/(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})/);
+    var db=tb.match(/(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})/);
+    var sa=da?da[1]+' '+da[2]:ta.match(/(\d{4}-\d{2}-\d{2})/);
+    var sb=db?db[1]+' '+db[2]:tb.match(/(\d{4}-\d{2}-\d{2})/);
+    sa=(sa?sa[0]||sa:'')+(da?'':' 00:00');
+    sb=(sb?sb[0]||sb:'')+(db?'':' 00:00');
     return sb.localeCompare(sa);
   });
   return out;
