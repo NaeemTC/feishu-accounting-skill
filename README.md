@@ -2,7 +2,7 @@
 
 <img src="assets/images/icon.png" width="120" height="120" align="center" />
 
-用自然语言记账的 Android App，数据存在飞书多维表格里，AI 帮你记、帮你算、帮你看。
+用自然语言记账的 Android App，数据存在飞书多维表格里，Agent帮你记、帮你算、帮你看。
 
 ---
 
@@ -53,7 +53,7 @@
 
 ## ⬇️ 下载 APK
 
-> **Android 用户直接安装，无需任何配置**
+> **Android 用户直接安装，再复制下方的Skill提示给任意Agent完成首次配置**
 
 **[📦 点击下载 APK](https://github.com/NaeemTC/feishu-accounting-skill/releases/latest/download/app-release.apk)**（3.9 MB）
 
@@ -63,7 +63,7 @@
 
 ## 🔧 安装 Skill（给 AI 助手用）
 
-想让你的 AI 助手帮你记账？直接把下面这句话发给它就行，剩下的 AI 自己会搞定：
+想让你的 Agent帮你记账？直接把下面这句话发给它就行，剩下的它自己会搞定：
 
 ```
 帮我安装这个记账技能，项目地址：https://github.com/NaeemTC/feishu-accounting-skill
@@ -73,7 +73,7 @@
 
 > AI 收到后会：读取仓库里的 `skills/feishu-accounting/SKILL.md` → 安装技能 → 引导你在飞书创建应用和表格 → 配置好凭证 → 开始记账。全程对话完成，零手动操作。
 
-如果你用的 AI 助手支持技能安装链接，也可以直接丢这个链接给它：
+如果你用的Agent支持技能安装链接，也可以直接丢这个链接给它：
 
 ```
 https://github.com/NaeemTC/feishu-accounting-skill/tree/main/skills/feishu-accounting
