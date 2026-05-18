@@ -429,6 +429,7 @@ function renderHBar(cats){
   }
   hbarChart.setOption({
     backgroundColor:'transparent',
+    title:{show:false},
     tooltip:{trigger:'axis',axisPointer:{type:'shadow'},formatter:function(p){return p[0].name+': ¥'+p[0].value.toFixed(2)},backgroundColor:CUR_THEME.tooltipBg,borderColor:CUR_THEME.tooltipBorder,textStyle:{color:CUR_THEME.tooltipText,fontSize:12}},
     grid:{left:56,right:64,top:6,bottom:24},
     xAxis:{type:'value',splitNumber:4,axisLabel:{color:CUR_THEME.axisLabel,fontSize:10,formatter:function(v){return v>=1000?Math.round(v/1000)+'k':v}},splitLine:{lineStyle:{color:CUR_THEME.splitLine}},axisLine:{show:false}},
