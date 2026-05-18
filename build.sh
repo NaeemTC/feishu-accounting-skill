@@ -18,3 +18,4 @@ JSON
 echo "=== gradle build ==="
 cd android
 ./gradlew assembleDebug
+

@@ -20,3 +20,4 @@ cd android
 ./gradlew assembleRelease
 cp app/build/outputs/apk/release/app-release.apk ./app-release.apk
 echo ">>> APK 已输出到 $(pwd)/app-release.apk"
+
