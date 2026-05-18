@@ -44,6 +44,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .mbtn.sum{width:34px;height:34px;font-size:15px;font-weight:700}
 .mbtn.pressed{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important;transform:scale(.93);box-shadow:inset 0 2px 6px rgba(0,0,0,.45)}
 .mbtn.theme{width:34px;height:34px;font-size:16px}
+.mbtn.refresh{width:34px;height:34px;font-size:18px}
+.mbtn.refresh:active{transform:rotate(180deg);transition:transform .3s}
 .mlabel{font-size:13px;font-weight:600;min-width:66px;text-align:center;transition:color .35s}
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 12px 8px}
 .card{background:var(--card);border-radius:var(--r);padding:14px 12px;border:1px solid var(--border);display:flex;flex-direction:column;gap:5px;box-shadow:0 4px 14px var(--shadow);transition:background .35s,border .35s,box-shadow .35s}
@@ -73,6 +75,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .pg button{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:8px;width:66px;height:28px;font-size:11px;cursor:pointer;transition:background .2s,border .2s,color .2s}
 .pg button:disabled{opacity:.4;cursor:not-allowed}
 .pg-info{font-size:10px;color:var(--dim)}
+.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:100;transition:background .35s}
+.dialog{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:28px 24px 20px;width:280px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.3);transition:background .35s,border .35s}
+.dialog-icon{font-size:36px;margin-bottom:8px;color:var(--accent)}
+.dialog-msg{font-size:15px;font-weight:600;margin-bottom:4px;line-height:1.5}
+.dialog-sub{font-size:12px;color:var(--dim);font-weight:400}
+.dialog-btns{display:flex;gap:10px;justify-content:center;margin-top:18px}
+.dbtn{padding:9px 20px;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;min-width:80px}
+.dbtn-cancel{background:var(--card2);color:var(--text);border:1px solid var(--border);transition:background .2s}
+.dbtn-cancel:active{background:var(--border)}
+.dbtn-confirm{background:var(--accent);color:#fff}
+.dbtn-confirm:active{opacity:.85}
 </style>
 </head>
 <body>
@@ -126,6 +139,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <h2>记账</h2>
       <button class="mbtn theme" id="btn-theme" title="切换主题">☀</button>
       <button class="mbtn sum" id="btn-sum" title="全部汇总">∑</button>
+      <button class="mbtn refresh" id="btn-refresh" title="刷新数据">↻</button>
     </div>
     <div class="month-sel">
       <button class="mbtn" id="btn-prev">‹</button>
@@ -150,6 +164,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <button id="pg-prev" disabled>上一页</button>
     <span class="pg-info" id="pg-info"></span>
     <button id="pg-next" disabled>下一页</button>
+  </div>
+</div>
+
+<!-- ─── 刷新确认弹窗 ─── -->
+<div id="refresh-overlay" class="overlay hidden">
+  <div class="dialog">
+    <div class="dialog-icon">↻</div>
+    <div class="dialog-msg">确认刷新数据？<br/><span class="dialog-sub">将重新拉取飞书最新账单</span></div>
+    <div class="dialog-btns">
+      <button class="dbtn dbtn-cancel" id="refresh-cancel">取消</button>
+      <button class="dbtn dbtn-confirm" id="refresh-confirm">确认刷新</button>
+    </div>
   </div>
 </div>
 
@@ -633,6 +659,37 @@ window.addEventListener('resize',function(){
   if(hbarChart)hbarChart.resize();
   if(barChart)barChart.resize();
   if(lineChart)lineChart.resize();
+});
+
+// ═══ 刷新数据 ═══
+function showOverlay(){document.getElementById('refresh-overlay').classList.remove('hidden')}
+function hideOverlay(){document.getElementById('refresh-overlay').classList.add('hidden')}
+
+function doRefresh(){
+  hideOverlay();
+  showLoading('正在重新拉取数据...');
+  getToken().then(function(token){
+    showLoading('正在拉取全部数据...');
+    return Promise.all([
+      fetchAll(token,DETAIL_TABLE),
+      fetchAll(token,SUMMARY_TABLE)
+    ]);
+  }).then(function(r){
+    detailRecords=r[0]||[];
+    summaryRecords=r[1]||[];
+    detailPage=0;
+    showApp();
+    render();
+  }).catch(function(e){
+    showError(e.message,e.stack||'');
+  });
+}
+
+document.getElementById('btn-refresh').addEventListener('click',showOverlay);
+document.getElementById('refresh-confirm').addEventListener('click',doRefresh);
+document.getElementById('refresh-cancel').addEventListener('click',hideOverlay);
+document.getElementById('refresh-overlay').addEventListener('click',function(e){
+  if(e.target===this)hideOverlay();
 });
 
 init();
