@@ -46,7 +46,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 12px 6px}
 .card{background:var(--card);border-radius:var(--r);padding:12px 10px;border:1px solid var(--border);display:flex;flex-direction:column;gap:4px}
 .card-lbl{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
-.card-val{font-size:clamp(12px,4.5vw,17px);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-val{display:block;font-size:clamp(12px,4.5vw,17px);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .card-val.exp{color:var(--expense)}.card-val.inc{color:var(--income)}.card-val.nt{color:var(--net)}
 .charts{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:6px 12px}
 .ch{background:var(--card);border-radius:var(--r);padding:10px;border:1px solid var(--border);overflow:hidden}
@@ -146,6 +146,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
   <div class="charts">
     <div class="ch ch-pie"><h4>支出分类</h4><div class="box" id="c-pie"></div></div>
+    <div class="ch ch-full"><h4>分类金额</h4><div class="box" id="c-hbar" style="height:220px"></div></div>
     <div class="ch"><h4>月度对比</h4><div class="box" id="c-bar"></div></div>
     <div class="ch"><h4>日支出趋势</h4><div class="box" id="c-line"></div></div>
   </div>
@@ -177,7 +178,7 @@ var detailRecords=[];
 var isTotalMode=false;
 var detailPage=0;
 var PAGE_SIZE=15;
-var pieChart=null,barChart=null,lineChart=null;
+var pieChart=null,barChart=null,lineChart=null,hbarChart=null;
 var cachedToken='',cachedTokenExp=0;
 
 function pad2(n){return n<10?'0'+n:''+n}
@@ -310,11 +311,13 @@ function getDashRecords(month){
     out.push(r);
   }
   out.sort(function(a,b){
-    var da=(a[FI.text]||'').match(/(\d{4}-\d{2}-\d{2})/);
-    var db=(b[FI.text]||'').match(/(\d{4}-\d{2}-\d{2})/);
-    if(da&&db)return db[1].localeCompare(da[1]);
-    if(da)return -1;if(db)return 1;
-    return 0;
+    var da=(a[FI.text]||'').match(/(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})/);
+    var db=(b[FI.text]||'').match(/(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})/);
+    var sa=da?da[1]+' '+da[2]:(a[FI.text]||'').match(/(\d{4}-\d{2}-\d{2})/);
+    var sb=db?db[1]+' '+db[2]:(b[FI.text]||'').match(/(\d{4}-\d{2}-\d{2})/);
+    sa=sa?sa[0]||sa:'';
+    sb=sb?sb[0]||sb:'';
+    return sb.localeCompare(sa);
   });
   return out;
 }
@@ -335,7 +338,7 @@ function renderSummary(inc,exp){
   document.getElementById('v-inc').textContent=fmt(inc);
   var net=inc-exp;
   var el=document.getElementById('v-net');
-  el.textContent=(net>=0?'+':'')+fmt(net);
+  el.textContent=(net>=0?'+\u2060':'-\u2060')+fmt(Math.abs(net));
   el.className='card-val '+(net>=0?'nt':'exp');
 }
 
@@ -357,11 +360,30 @@ function renderPie(cats){
       type:'pie',radius:['28%','62%'],center:['50%','52%'],
       avoidLabelOverlap:true,
       itemStyle:{borderRadius:5,borderColor:'#0f0f1a',borderWidth:2},
-      label:{show:true,formatter:'{b}\n¥{c} ({d}%)',fontSize:11,color:'#aaa',lineHeight:15},
+      label:{show:true,formatter:'{b}\n{d}%',fontSize:11,color:'#aaa',lineHeight:15},
       labelLine:{lineStyle:{color:'#555'},length:8,length2:10},
       emphasis:{label:{show:true,fontSize:13,fontWeight:'bold'}},
       data:cats.map(function(c){return{name:c.name,value:Math.round(c.amount*100)/100,itemStyle:{color:c.color}}})
     }]
+  });
+}
+
+function renderHBar(cats){
+  var el=document.getElementById('c-hbar');
+  if(!el)return;
+  if(!hbarChart)hbarChart=echarts.init(el,null,{renderer:'svg'});
+  if(!cats.length){
+    hbarChart.clear();
+    hbarChart.setOption({title:{text:'暂无数据',left:'center',top:'center',textStyle:{color:'#666',fontSize:13}}});
+    return;
+  }
+  hbarChart.setOption({
+    backgroundColor:'transparent',
+    tooltip:{trigger:'axis',axisPointer:{type:'shadow'},formatter:function(p){return p[0].name+': ¥'+p[0].value.toFixed(2)},backgroundColor:'#1a1a2e',borderColor:'#2a2a4a',textStyle:{color:'#e0e0e0',fontSize:12}},
+    grid:{left:56,right:64,top:6,bottom:10},
+    xAxis:{type:'value',axisLabel:{color:'#888',fontSize:10,formatter:function(v){return v>=1000?Math.round(v/1000)+'k':v}},splitLine:{lineStyle:{color:'#222'}},axisLine:{show:false}},
+    yAxis:{type:'category',data:cats.map(function(c){return c.name}),axisLine:{show:false},axisTick:{show:false},axisLabel:{color:'#ddd',fontSize:11},inverse:true},
+    series:[{type:'bar',data:cats.map(function(c){return{value:Math.round(c.amount*100)/100,itemStyle:{color:c.color,borderRadius:[0,4,4,0]}}}),barMaxWidth:22,label:{show:true,position:'right',formatter:function(p){return '¥'+p.value.toFixed(2)},color:'#aaa',fontSize:10}}]
   });
 }
 
@@ -470,6 +492,7 @@ function render(){
   renderSummary(sm.income,sm.expense);
   var cats=catSummaryFromDetail(month);
   renderPie(cats);
+  renderHBar(cats);
   renderBar();
   renderLine(month);
   renderCats(cats,sm.expense);
@@ -590,6 +613,7 @@ document.getElementById('pg-next').addEventListener('click',function(){
 });
 window.addEventListener('resize',function(){
   if(pieChart)pieChart.resize();
+  if(hbarChart)hbarChart.resize();
   if(barChart)barChart.resize();
   if(lineChart)lineChart.resize();
 });

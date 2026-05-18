@@ -17,6 +17,6 @@ echo ">>> 已修复"
 
 echo ">>> 构建 APK"
 cd android
-./gradlew assembleDebug
-cp app/build/outputs/apk/debug/app-debug.apk /home/naeem/AI-Agent-Personal-Accounting.apk
+./gradlew assembleRelease
+cp app/build/outputs/apk/release/app-release.apk /home/naeem/AI-Agent-Personal-Accounting.apk
 echo ">>> APK 已输出到 /home/naeem/AI-Agent-Personal-Accounting.apk"
