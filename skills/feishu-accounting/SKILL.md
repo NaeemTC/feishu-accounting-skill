@@ -205,6 +205,9 @@ feishu-cli bitable field create --base-token $BASE_TOKEN --table-id $SUMMARY_TAB
 > 5. **汇总表 Table ID**：`你的汇总表ID`
 >
 > 输入后 App 就能正常查看你的账单数据了。
+>
+> 📊 **多维表格链接**：https://bytedance.feishu.cn/base/`你的Base_Token`
+> （浏览器打开就能直接看到你建的明细表和汇总表）
 
 ### Step 10：配置凭证（让 record_bill.py 能用）
 
