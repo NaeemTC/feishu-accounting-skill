@@ -236,7 +236,7 @@ export FEISHU_SUMMARY_TABLE_ID="你的汇总表ID"
 
 > 飞书记账后台已经配好了！要不要装个手机 App 来看图表？
 >
-> - **📦 下载发布版**（推荐，即装即用）：https://github.com/NaeemTC/feishu-accounting-skill/releases/latest/download/app-release.apk
+> - **📦 下载发布版**（推荐，即装即用）：https://github.com/NaeemTC/feishu-accounting-skill/releases/download/v1.1.0/feishu-accounting-skill-v1.1.0.apk
 > - **🔧 从源码构建**：需要 Node.js + Android SDK，克隆仓库后执行 `bash sync.sh`
 
 用户选发布版就直接发下载链接，选自己打就引导构建。
