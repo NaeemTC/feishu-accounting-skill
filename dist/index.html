@@ -35,10 +35,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .lbtn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:12px;font-size:15px;font-weight:600;cursor:pointer;margin-top:6px}
 .lbtn:active{opacity:.85}
 /* ─── 顶部导航 ─── */
-.header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;box-shadow:0 2px 12px var(--shadow);transition:background .35s,border .35s,box-shadow .35s}
-.title-group{display:flex;align-items:center;gap:6px}
-.header h2{font-size:17px;font-weight:700;background:linear-gradient(135deg,#4facfe,#00c853);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.month-sel{display:flex;align-items:center;gap:6px}
+.header{display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;box-shadow:0 2px 12px var(--shadow);transition:background .35s,border .35s,box-shadow .35s}
+.title-group{display:flex;align-items:center;gap:6px;flex:1}
+.month-sel{display:flex;align-items:center;gap:6px;flex:1;justify-content:flex-end}
 .mbtn{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s,border .2s,color .2s,transform .2s,box-shadow .2s}
 .mbtn:active{background:var(--border)}
 .mbtn.sum{width:34px;height:34px;font-size:15px;font-weight:700}
@@ -136,7 +135,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div id="app" class="hidden">
   <div class="header">
     <div class="title-group">
-      <h2>记账</h2>
       <button class="mbtn theme" id="btn-theme" title="切换主题">☀</button>
       <button class="mbtn sum" id="btn-sum" title="全部汇总">∑</button>
       <button class="mbtn refresh" id="btn-refresh" title="刷新数据">↻</button>
