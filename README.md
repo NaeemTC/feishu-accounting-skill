@@ -61,7 +61,7 @@
 
 > **Android 用户直接安装，再复制下方的Skill提示给任意Agent完成首次配置**
 
-**[📦 点击下载 APK](https://github.com/NaeemTC/feishu-accounting-skill/releases/latest/download/app-release.apk)**（3.9 MB）
+**[📦 点击下载 APK](https://github.com/NaeemTC/feishu-accounting-skill/releases/download/v1.1.0/feishu-accounting-skill-v1.1.0.apk)**（3.9 MB）
 
 > 如果链接失效，请访问 [Releases 页面](https://github.com/NaeemTC/feishu-accounting-skill/releases) 下载最新版本。
 
@@ -164,6 +164,36 @@ bash sync.sh
 bash build.sh
 # APK 输出到 android/app/build/outputs/apk/
 ```
+
+---
+
+## 🔒 隐私声明
+
+本 App 不会收集、上传或共享你的任何个人信息。
+
+### 网络请求
+
+| 目标 | 目的 | 传输数据 |
+|------|------|----------|
+| `cdn.jsdelivr.net` | 加载 ECharts 图表库 | 无（仅加载 JS 文件） |
+| `open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal` | 获取飞书 API Token | App ID + App Secret（换取 2 小时有效令牌） |
+| `open.feishu.cn/open-apis/base/v3/bases/{base}/tables/{table}/records` | 拉取账单数据 | Bearer Token（飞书 API 鉴权用） |
+
+### 权限
+
+仅需 `INTERNET` 权限（联网获取飞书数据）。无相机、定位、通讯录、存储、短信等敏感权限。
+
+### 数据存储
+
+所有配置（App ID / Secret / Base Token / Table ID）仅存于本机 WebView 的 `localStorage`，**不发送给任何第三方服务器**。数据实时从你的飞书多维表格读取，不经由第三方中转。
+
+### 第三方依赖
+
+- ECharts（`cdn.jsdelivr.net` 加载）— 仅用于图表渲染，不收集任何用户数据
+
+### 透明度
+
+本 App 无广告、无统计埋点、无推送通知、无后台服务。关闭即停止所有网络活动。
 
 ---
 
