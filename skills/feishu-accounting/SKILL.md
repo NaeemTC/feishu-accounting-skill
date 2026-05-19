@@ -130,7 +130,7 @@ feishu-cli auth login --domain bitable --recommend --json --no-wait
 feishu-cli bitable create --name "个人记账本"
 ```
 
-**记录返回的 base_token**（格式如 `Cq5d8wXzuQ3y0kvLFHn12s34pAB`）。
+**记录返回的 base_token**（格式如 `your_base_token_here`）。
 
 ### Step 7：创建两个表
 
@@ -350,7 +350,7 @@ feishu-accounting/
 
 | 变量名 | 说明 | 示例 |
 |--------|------|------|
-| `FEISHU_BASE_TOKEN` | 多维表格 Base Token | `Cq5d8wXzuQ3y0kvLFHn12s34pAB` |
+| `FEISHU_BASE_TOKEN` | 多维表格 Base Token | `your_base_token_here` |
 | `FEISHU_DETAIL_TABLE_ID` | 明细表 ID | `tblxxxxxxxxxxxxxxxx` |
 | `FEISHU_SUMMARY_TABLE_ID` | 汇总表 ID | `tblyyyyyyyyyyyyyyyy` |
 
