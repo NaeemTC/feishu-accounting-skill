@@ -59,7 +59,7 @@ metadata:
 
 ```bash
 curl -L --max-time 60 -o /tmp/feishu-cli.tar.gz \
-  "https://gh-proxy.com/https://github.com/riba2534/feishu-cli/releases/download/v1.25.0/feishu-cli_v1.25.0_linux-amd64.tar.gz"
+  "https://github.com/riba2534/feishu-cli/releases/download/v1.25.0/feishu-cli_v1.25.0_linux-amd64.tar.gz"
 cd /tmp && tar -xzf feishu-cli.tar.gz
 sudo cp feishu-cli_v1.25.0_linux-amd64/feishu-cli /usr/local/bin/
 feishu-cli --version
@@ -119,21 +119,15 @@ debug: false
 ### Step 5：认证
 
 ```bash
-# 第一步：获取设备码
 feishu-cli auth login --domain bitable --recommend --json --no-wait
 ```
 
-**把输出中的 `verification_url` 发给用户，让他们在浏览器完成授权。**
-
-```bash
-# 用户授权完成后第二步
-feishu-cli auth login --device-code <device_code> --json
-```
+**把输出中的 `verification_url` 发送给用户，让他们在浏览器打开链接，点击「授权」即可完成，无需扫码。**
 
 ### Step 6：创建多维表格
 
 ```bash
-feishu-cli bitable app create --name "个人记账本"
+feishu-cli bitable create --name "个人记账本"
 ```
 
 **记录返回的 base_token**（格式如 `Cq5d8wXzuQ3y0kvLFHn12s34pAB`）。
@@ -196,25 +190,21 @@ feishu-cli bitable field create --base-token $BASE_TOKEN --table-id $SUMMARY_TAB
   --config '{"field_name":"金额","type":"number"}'
 ```
 
-### Step 9：输出凭证
+### Step 9：输出凭证给用户
 
-> ⚠️ **App ID 和 App Secret 来自用户在第 2 步提供的信息**，AI 应在此处引用用户之前给出的值，确保证书完整。
+**AI 必须将以下 5 个凭证填入实际值后发送给用户（App ID / App Secret 来自 Step 2 用户提供的值，Base Token / Table ID 来自 Step 6-7 创建的）：**
 
-**把以下信息发送给用户：**
-
-```
-|✅ 飞书记账配置完成！
-
-请保存以下 5 个凭证——首次打开手机 App 时需要按顺序输入：
-
-1. App ID：<用户在第2步提供的 app_id>
-2. App Secret：<用户在第2步提供的 app_secret>
-3. Base Token：<base_token>
-4. 明细表 Table ID：<detail_table_id>
-5. 汇总表 Table ID：<summary_table_id>
-
-输入这 5 项后，App 就能正常查看你的账单数据了。
-```
+> ✅ 飞书记账配置完成！
+>
+> 请保存以下 5 个凭证——首次打开手机 App 时需要按顺序输入：
+>
+> 1. **App ID**：`你的App_ID`
+> 2. **App Secret**：`你的App_Secret`
+> 3. **Base Token**：`你的Base_Token`
+> 4. **明细表 Table ID**：`你的明细表ID`
+> 5. **汇总表 Table ID**：`你的汇总表ID`
+>
+> 输入后 App 就能正常查看你的账单数据了。
 
 ### Step 10：配置凭证（让 record_bill.py 能用）
 
