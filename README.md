@@ -61,7 +61,7 @@
 
 > **Android 用户直接安装，再复制下方的Skill提示给任意Agent完成首次配置**
 
-**[📦 点击下载 APK](https://github.com/NaeemTC/feishu-accounting-skill/releases/download/v1.1.0/feishu-accounting-skill-v1.1.0.apk)**（3.9 MB）
+**[📦 点击下载 APK](https://github.com/NaeemTC/feishu-accounting-skill/releases/download/v1.2.0/feishu-accounting-skill-v1.2.0.apk)**（3.9 MB）
 
 > 如果链接失效，请访问 [Releases 页面](https://github.com/NaeemTC/feishu-accounting-skill/releases) 下载最新版本。
 
