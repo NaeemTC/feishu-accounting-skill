@@ -2,9 +2,9 @@
 
 <img src="assets/images/icon.png" width="120" height="120" align="center" />
 
-现在记账软件什么德行你也知道——手动点分类、看开屏广告、基础功能还要付费订阅。安装包一个个几百 MB。
+现在记账软件——手动点分类、看开屏广告、基础功能还要付费订阅。安装包一个个几百 MB。
 
-这个 3.9 MB。每次刷新走 55KB 流量。没广告、没订阅、不用注册。
+这个 3.9 MB。**agent通过skill调用飞书cli在多维表格上记账，app通过api接收数据**。每次刷新走 55KB 流量。没广告、没订阅、不用注册。
 
 怎么用？跟 AI 说就行。「午饭花了 23 块 4」自动归到餐饮，「工资到账 8000」归到工资。Agent 帮你分好类、写好表、同步完，App 那边自动渲染成图表。数据在你自己的飞书里，不经过第三方服务器。
 
@@ -61,7 +61,7 @@
 
 > **Android 用户直接安装，再复制下方的Skill提示给任意Agent完成首次配置**
 
-**[📦 点击下载 APK](https://github.com/NaeemTC/feishu-accounting-skill/releases/latest/download/app-release.apk)**（3.9 MB）
+**[📦 点击下载 APK](https://github.com/NaeemTC/feishu-accounting-skill/releases/download/v1.2.0/feishu-accounting-skill-v1.2.0.apk)**（3.9 MB）
 
 > 如果链接失效，请访问 [Releases 页面](https://github.com/NaeemTC/feishu-accounting-skill/releases) 下载最新版本。
 
@@ -164,6 +164,36 @@ bash sync.sh
 bash build.sh
 # APK 输出到 android/app/build/outputs/apk/
 ```
+
+---
+
+## 🔒 隐私声明
+
+本 App 不会收集、上传或共享你的任何个人信息。
+
+### 网络请求
+
+| 目标 | 目的 | 传输数据 |
+|------|------|----------|
+| `cdn.jsdelivr.net` | 加载 ECharts 图表库 | 无（仅加载 JS 文件） |
+| `open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal` | 获取飞书 API Token | App ID + App Secret（换取 2 小时有效令牌） |
+| `open.feishu.cn/open-apis/base/v3/bases/{base}/tables/{table}/records` | 拉取账单数据 | Bearer Token（飞书 API 鉴权用） |
+
+### 权限
+
+仅需 `INTERNET` 权限（联网获取飞书数据）。无相机、定位、通讯录、存储、短信等敏感权限。
+
+### 数据存储
+
+所有配置（App ID / Secret / Base Token / Table ID）仅存于本机 WebView 的 `localStorage`，**不发送给任何第三方服务器**。数据实时从你的飞书多维表格读取，不经由第三方中转。
+
+### 第三方依赖
+
+- ECharts（`cdn.jsdelivr.net` 加载）— 仅用于图表渲染，不收集任何用户数据
+
+### 透明度
+
+本 App 无广告、无统计埋点、无推送通知、无后台服务。关闭即停止所有网络活动。
 
 ---
 

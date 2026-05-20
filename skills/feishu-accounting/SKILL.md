@@ -59,7 +59,7 @@ metadata:
 
 ```bash
 curl -L --max-time 60 -o /tmp/feishu-cli.tar.gz \
-  "https://gh-proxy.com/https://github.com/riba2534/feishu-cli/releases/download/v1.25.0/feishu-cli_v1.25.0_linux-amd64.tar.gz"
+  "https://github.com/riba2534/feishu-cli/releases/download/v1.25.0/feishu-cli_v1.25.0_linux-amd64.tar.gz"
 cd /tmp && tar -xzf feishu-cli.tar.gz
 sudo cp feishu-cli_v1.25.0_linux-amd64/feishu-cli /usr/local/bin/
 feishu-cli --version
@@ -119,24 +119,18 @@ debug: false
 ### Step 5：认证
 
 ```bash
-# 第一步：获取设备码
 feishu-cli auth login --domain bitable --recommend --json --no-wait
 ```
 
-**把输出中的 `verification_url` 发给用户，让他们在浏览器完成授权。**
-
-```bash
-# 用户授权完成后第二步
-feishu-cli auth login --device-code <device_code> --json
-```
+**把输出中的 `verification_url` 发送给用户，让他们在浏览器打开链接，点击「授权」即可完成，无需扫码。**
 
 ### Step 6：创建多维表格
 
 ```bash
-feishu-cli bitable app create --name "个人记账本"
+feishu-cli bitable create --name "个人记账本"
 ```
 
-**记录返回的 base_token**（格式如 `Cq5d8wXzuQ3y0kvLFHn12s34pAB`）。
+**记录返回的 base_token**（格式如 `your_base_token_here`）。
 
 ### Step 7：创建两个表
 
@@ -174,7 +168,7 @@ feishu-cli bitable field list --base-token $BASE_TOKEN --table-id $DETAIL_TABLE_
 # 找到分类字段ID后
 feishu-cli bitable field update --base-token $BASE_TOKEN --table-id $DETAIL_TABLE_ID \
   --field-id <分类字段ID> \
-  --config '{"field_name":"分类","type":"select","options":[{"name":"其它"},{"name":"生活"},{"name":"娱乐"},{"name":"通讯"},{"name":"交通"},{"name":"购物"},{"name":"餐饮"}]}'
+  --config '{"field_name":"分类","type":"select","options":[{"name":"餐饮"},{"name":"购物"},{"name":"交通"},{"name":"娱乐"},{"name":"通讯"},{"name":"生活"},{"name":"医疗"},{"name":"住房"},{"name":"教育"},{"name":"服饰"},{"name":"数码"},{"name":"运动"},{"name":"宠物"},{"name":"其它"}]}'
 
 # ── 汇总表字段 ──
 feishu-cli bitable field create --base-token $BASE_TOKEN --table-id $SUMMARY_TABLE_ID \
@@ -196,25 +190,34 @@ feishu-cli bitable field create --base-token $BASE_TOKEN --table-id $SUMMARY_TAB
   --config '{"field_name":"金额","type":"number"}'
 ```
 
-### Step 9：输出凭证
+> **已有用户升级分类**：如果你之前已经建好表，用以下命令给分类字段补充新选项（13分类）：
+> ```bash
+> # 先找到分类字段ID
+> feishu-cli bitable field list --base-token $BASE_TOKEN --table-id $DETAIL_TABLE_ID
+> # 替换下方 <分类字段ID> 后执行
+> feishu-cli bitable field update --base-token $BASE_TOKEN --table-id $DETAIL_TABLE_ID \
+>   --field-id <分类字段ID> \
+>   --config '{"field_name":"分类","type":"select","options":[{"name":"餐饮"},{"name":"购物"},{"name":"交通"},{"name":"娱乐"},{"name":"通讯"},{"name":"生活"},{"name":"医疗"},{"name":"住房"},{"name":"教育"},{"name":"服饰"},{"name":"数码"},{"name":"运动"},{"name":"宠物"},{"name":"其它"}]}'
+> ```
 
-> ⚠️ **App ID 和 App Secret 来自用户在第 2 步提供的信息**，AI 应在此处引用用户之前给出的值，确保证书完整。
+### Step 9：输出凭证给用户
 
-**把以下信息发送给用户：**
+**AI 必须将以下 5 个凭证填入实际值后发送给用户（App ID / App Secret 来自 Step 2 用户提供的值，Base Token / Table ID 来自 Step 6-7 创建的）：**
 
-```
-|✅ 飞书记账配置完成！
-
-请保存以下 5 个凭证——首次打开手机 App 时需要按顺序输入：
-
-1. App ID：<用户在第2步提供的 app_id>
-2. App Secret：<用户在第2步提供的 app_secret>
-3. Base Token：<base_token>
-4. 明细表 Table ID：<detail_table_id>
-5. 汇总表 Table ID：<summary_table_id>
-
-输入这 5 项后，App 就能正常查看你的账单数据了。
-```
+> ✅ 飞书记账配置完成！
+>
+> 请保存以下 5 个凭证——首次打开手机 App 时需要按顺序输入：
+>
+> 1. **App ID**：`你的App_ID`
+> 2. **App Secret**：`你的App_Secret`
+> 3. **Base Token**：`你的Base_Token`
+> 4. **明细表 Table ID**：`你的明细表ID`
+> 5. **汇总表 Table ID**：`你的汇总表ID`
+>
+> 输入后 App 就能正常查看你的账单数据了。
+>
+> 📊 **多维表格链接**：https://bytedance.feishu.cn/base/`你的Base_Token`
+> （浏览器打开就能直接看到你建的明细表和汇总表）
 
 ### Step 10：配置凭证（让 record_bill.py 能用）
 
@@ -243,7 +246,7 @@ export FEISHU_SUMMARY_TABLE_ID="你的汇总表ID"
 
 > 飞书记账后台已经配好了！要不要装个手机 App 来看图表？
 >
-> - **📦 下载发布版**（推荐，即装即用）：https://github.com/NaeemTC/feishu-accounting-skill/releases/latest/download/app-release.apk
+> - **📦 下载发布版**（推荐，即装即用）：https://github.com/NaeemTC/feishu-accounting-skill/releases/download/v1.1.0/feishu-accounting-skill-v1.1.0.apk
 > - **🔧 从源码构建**：需要 Node.js + Android SDK，克隆仓库后执行 `bash sync.sh`
 
 用户选发布版就直接发下载链接，选自己打就引导构建。
@@ -326,19 +329,24 @@ python3 scripts/record_bill.py --summary --month 2026-05
 
 | 类型 | 分类 | 关键词 |
 |------|------|--------|
-| 支出 | 餐饮 | 早饭/午饭/晚饭/外卖/咖啡/奶茶/餐厅 |
-| 支出 | 购物 | 超市/衣服/鞋子/电商/淘宝/京东/日用品 |
-| 支出 | 交通 | 打车/地铁/公交/停车/加油/滴滴 |
-| 支出 | 娱乐 | 电影/KTV/旅游/游戏氪金/彩票 |
-| 支出 | 通讯 | 话费/流量/套餐 |
-| 支出 | 医疗 | 医院/药店/挂号/体检 |
-| 支出 | 住房 | 房租/水电/物业/宽带 |
-| 支出 | 教育 | 学费/课程/书/培训 |
-| 收入 | 工资 | 工资/薪资/月薪 |
-| 收入 | 兼职 | 兼职/副业/接单 |
-| 收入 | 投资 | 理财/股票/基金/利息 |
+|| 支出 | 餐饮 | 早饭/午饭/晚饭/外卖/咖啡/奶茶/餐厅 |
+|| 支出 | 购物 | 超市/衣服/鞋子/电商/淘宝/京东/日用品 |
+|| 支出 | 交通 | 打车/地铁/公交/停车/加油/滴滴 |
+|| 支出 | 娱乐 | 电影/KTV/旅游/游戏氪金/彩票 |
+|| 支出 | 通讯 | 话费/流量/套餐 |
+|| 支出 | 医疗 | 医院/药店/挂号/体检 |
+|| 支出 | 住房 | 房租/水电/物业/宽带 |
+|| 支出 | 教育 | 学费/课程/书/培训 |
+|| 支出 | 服饰 | 衣服/鞋子/包包/穿搭/配饰 |
+|| 支出 | 生活 | 日用/日用品/理发/洗衣/五金 |
+|| 支出 | 数码 | 手机/数码/充电器/耳机/硬盘 |
+|| 支出 | 运动 | 健身/运动/游泳/羽毛球/球鞋 |
+|| 支出 | 宠物 | 宠物/猫粮/狗粮/猫砂/疫苗 |
+|| 收入 | 工资 | 工资/薪资/月薪 |
+|| 收入 | 兼职 | 兼职/副业/接单 |
+|| 收入 | 投资 | 理财/股票/基金/利息 |
 
-**飞书分类映射**：本地「医疗/住房/教育/其他/银行/工资/奖金/兼职/投资」→ 飞书统一为「其它」。
+**飞书分类映射**：13个分类在飞书明细表中均有对应选项，无需映射损耗。本地「其他/银行/工资/奖金/兼职/投资」→ 飞书「其它」。
 
 ---
 
@@ -357,7 +365,7 @@ feishu-accounting/
 
 | 变量名 | 说明 | 示例 |
 |--------|------|------|
-| `FEISHU_BASE_TOKEN` | 多维表格 Base Token | `Cq5d8wXzuQ3y0kvLFHn12s34pAB` |
+| `FEISHU_BASE_TOKEN` | 多维表格 Base Token | `your_base_token_here` |
 | `FEISHU_DETAIL_TABLE_ID` | 明细表 ID | `tblxxxxxxxxxxxxxxxx` |
 | `FEISHU_SUMMARY_TABLE_ID` | 汇总表 ID | `tblyyyyyyyyyyyyyyyy` |
 
