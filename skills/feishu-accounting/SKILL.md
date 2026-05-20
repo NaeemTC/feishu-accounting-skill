@@ -1,33 +1,10 @@
 ---
 name: feishu-accounting
 description: 飞书多维表格记账系统完整技能包。包含两步：1）运行 feishu-accounting-setup 引导用户完成飞书应用创建、多维表格搭建、凭证获取；2）使用 record_bill.py 进行日常记账（支持本地存储 + 飞书多维表格同步）。**同步规则：支出写明细表+汇总表，收入只写汇总表（明细表仅用于 App 仪表盘展示消费明细）。**
-version: 1.0.0
+version: 1.2.2
 author: Naeem
 homepage: https://github.com/NaeemTC/feishu-accounting-skill
 tags: [feishu, bitable, accounting, setup]
-metadata:
-  openclaw:
-    requires:
-      env:
-        - FEISHU_BASE_TOKEN
-        - FEISHU_DETAIL_TABLE_ID
-        - FEISHU_SUMMARY_TABLE_ID
-      bins:
-        - curl
-        - python3
-    primaryEnv: FEISHU_BASE_TOKEN
-    envVars:
-      - name: FEISHU_BASE_TOKEN
-        required: true
-        description: "飞书多维表格 Base Token"
-      - name: FEISHU_DETAIL_TABLE_ID
-        required: true
-        description: "明细表 Table ID"
-      - name: FEISHU_SUMMARY_TABLE_ID
-        required: true
-        description: "汇总表 Table ID"
-    emoji: "💰"
-    homepage: "https://github.com/NaeemTC/feishu-accounting-skill"
 ---
 
 # 飞书多维表格记账系统
@@ -246,7 +223,7 @@ export FEISHU_SUMMARY_TABLE_ID="你的汇总表ID"
 
 > 飞书记账后台已经配好了！要不要装个手机 App 来看图表？
 >
-> - **📦 下载发布版**（推荐，即装即用）：https://github.com/NaeemTC/feishu-accounting-skill/releases/download/v1.1.0/feishu-accounting-skill-v1.1.0.apk
+> - **📦 下载发布版**（推荐，即装即用）：https://github.com/NaeemTC/feishu-accounting-skill/releases/latest/download/app-release.apk
 > - **🔧 从源码构建**：需要 Node.js + Android SDK，克隆仓库后执行 `bash sync.sh`
 
 用户选发布版就直接发下载链接，选自己打就引导构建。
