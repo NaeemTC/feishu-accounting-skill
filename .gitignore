@@ -34,3 +34,6 @@ android/capacitor-cordova-android-plugins/build/
 .env
 
 
+
+# 个人账单数据
+skills/feishu-accounting/bills/

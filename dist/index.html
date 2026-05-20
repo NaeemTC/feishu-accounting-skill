@@ -440,27 +440,29 @@ function renderBar(){
   var el=document.getElementById('c-bar');
   if(!el)return;
   if(!barChart)barChart=echarts.init(el,null,{renderer:'svg'});
-  var ms=getMonthList().slice(0,6);
+  var ms=getMonthList();
   var incD=[],expD=[];
   for(var i=0;i<ms.length;i++){
     var d=getMonthSummary(ms[i]);
     incD.push(d.income);expD.push(d.expense);
   }
-  barChart.setOption({
+  var opt={
     backgroundColor:'transparent',
     tooltip:{trigger:'axis',confine:true,formatter:function(p){
       var s=p[0].name+'<br/>';
       for(var i=0;i<p.length;i++)s+='<span style="color:'+p[i].color+'">●</span> '+p[i].seriesName+': ¥'+p[i].value.toFixed(2)+'<br/>';
       return s;
     },backgroundColor:CUR_THEME.tooltipBg,borderColor:CUR_THEME.tooltipBorder,textStyle:{color:CUR_THEME.tooltipText,fontSize:12}},
-    grid:{left:42,right:10,top:10,bottom:22},
+    grid:{left:42,right:14,top:10,bottom:22},
     xAxis:{type:'category',data:ms.map(function(m){return m.slice(5)}),axisLabel:{color:CUR_THEME.axisLabel,fontSize:10},axisLine:{lineStyle:{color:CUR_THEME.axisLine}}},
     yAxis:{type:'value',axisLabel:{color:CUR_THEME.axisLabel,fontSize:10,formatter:function(v){return v>=1000?(v/1000)+'k':v}},splitLine:{lineStyle:{color:CUR_THEME.splitLine}},axisLine:{show:false}},
     series:[
       {name:'收入',type:'bar',data:incD,itemStyle:{color:'#00c853',borderRadius:[3,3,0,0]},barMaxWidth:24},
       {name:'支出',type:'bar',data:expD,itemStyle:{color:'#ff5252',borderRadius:[3,3,0,0]},barMaxWidth:24}
     ]
-  });
+  };
+  if(ms.length>3)opt.dataZoom=[{type:'inside',start:100-(3/ms.length*100),end:100}];
+  barChart.setOption(opt);
 }
 
 function renderLine(month){
@@ -481,7 +483,7 @@ function renderLine(month){
     lineChart.setOption({title:{text:'暂无日趋势数据',left:'center',top:'center',textStyle:{color:'#666',fontSize:13}}});
     return;
   }
-  lineChart.setOption({
+  var optL={
     backgroundColor:'transparent',
     title:{show:false},
     tooltip:{trigger:'axis',confine:true,formatter:function(p){return p[0].name+'<br/><span style="color:'+p[0].color+'">●</span> ¥'+p[0].value.toFixed(2)},backgroundColor:CUR_THEME.tooltipBg,borderColor:CUR_THEME.tooltipBorder,textStyle:{color:CUR_THEME.tooltipText,fontSize:12}},
@@ -489,7 +491,9 @@ function renderLine(month){
     xAxis:{type:'category',data:days.map(function(d){return d.slice(5)}),axisLabel:{color:CUR_THEME.axisLabel,fontSize:10},axisLine:{lineStyle:{color:CUR_THEME.axisLine}}},
     yAxis:{type:'value',axisLabel:{color:CUR_THEME.axisLabel,fontSize:10,formatter:function(v){return '¥'+v}},splitLine:{lineStyle:{color:CUR_THEME.splitLine}},axisLine:{show:false}},
     series:[{type:'line',data:days.map(function(d){return Math.round(dayMap[d]*100)/100}),smooth:true,symbol:'circle',symbolSize:7,lineStyle:{color:'#4facfe',width:2.5},itemStyle:{color:'#4facfe'},areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(79,172,254,0.25)'},{offset:1,color:'rgba(79,172,254,0)'}]}}}]
-  });
+  };
+  if(days.length>10)optL.dataZoom=[{type:'inside',start:100-(10/days.length*100),end:100}];
+  lineChart.setOption(optL);
 }
 
 function renderDetails(month){
