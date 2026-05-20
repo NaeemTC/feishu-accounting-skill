@@ -101,7 +101,7 @@
 如果你用的Agent支持技能安装链接，也可以直接丢这个链接给它：
 
 ```
-https://github.com/NaeemTC/feishu-accounting-skill/tree/main/skills/feishu-accounting
+https://github.com/NaeemTC/feishu-accounting-skill/tree/v1.2.1/skills/feishu-accounting
 ```
 
 ---
