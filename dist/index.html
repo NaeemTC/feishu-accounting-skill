@@ -44,7 +44,42 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .mbtn.pressed{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important;transform:scale(.93);box-shadow:inset 0 2px 6px rgba(0,0,0,.45)}
 .mbtn.theme{width:34px;height:34px;font-size:16px}
 .mbtn.refresh{width:34px;height:34px;font-size:18px}
+.mbtn.sett{width:34px;height:34px;font-size:17px}
+.mbtn.sett:active{transform:rotate(45deg);transition:transform .3s}
 .mbtn.refresh:active{transform:rotate(180deg);transition:transform .3s}
+/* ─── 设置弹窗 ─── */
+.s-dialog{background:var(--card);border:1px solid var(--border);border-radius:var(--r);width:300px;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.3);transition:background .35s,border .35s}
+.s-dialog::-webkit-scrollbar{width:4px}
+.s-dialog::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.s-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 10px;border-bottom:1px solid var(--border);transition:border-color .35s}
+.s-head h3{font-size:15px;font-weight:700;color:var(--text);transition:color .35s}
+.s-close{background:none;border:none;color:var(--dim);font-size:20px;cursor:pointer;padding:0;line-height:1;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:background .2s,color .2s}
+.s-close:active{background:var(--border);color:var(--text)}
+.s-body{padding:4px 0}
+.s-row{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;cursor:pointer;transition:background .15s;border-bottom:1px solid var(--border);transition:background .15s,border-color .35s}
+.s-row:active{background:var(--card2)}
+.s-row:last-child{border-bottom:none}
+.s-row-lbl{font-size:13px;font-weight:500;color:var(--text);transition:color .35s}
+.s-row-arrow{font-size:12px;color:var(--dim)}
+/* ─── 分类设置子弹窗 ─── */
+.sc-dialog{background:var(--card);border:1px solid var(--border);border-radius:var(--r);width:300px;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.3);transition:background .35s,border .35s}
+.sc-dialog::-webkit-scrollbar{width:4px}
+.sc-dialog::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.sc-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 10px;border-bottom:1px solid var(--border);transition:border-color .35s}
+.sc-head h3{font-size:15px;font-weight:700;color:var(--text);transition:color .35s}
+.sc-head .hint{font-size:11px;color:var(--dim);font-weight:400;margin-left:6px}
+.sc-body{padding:6px 0}
+.sc-item{display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid var(--border);transition:border-color .35s}
+.sc-item:last-child{border-bottom:none}
+.sc-item label{flex:1;font-size:13px;color:var(--text);cursor:pointer;transition:color .35s}
+.sc-item input[type=checkbox]{appearance:none;-webkit-appearance:none;width:18px;height:18px;border:2px solid var(--dim);border-radius:5px;cursor:pointer;position:relative;flex-shrink:0;transition:border-color .2s,background .2s}
+.sc-item input[type=checkbox]:checked{border-color:var(--accent);background:var(--accent)}
+.sc-item input[type=checkbox]:checked::after{content:'✓';color:#fff;font-size:12px;font-weight:700;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
+.sc-foot{padding:8px 18px 14px;border-top:1px solid var(--border);transition:border-color .35s}
+.sc-foot .sc-hint{font-size:11px;color:var(--dim);line-height:1.5;transition:color .35s}
+.sc-foot .sc-hint b{font-weight:600;color:var(--text)}
+/* ─── 检查更新行（占位） ─── */
+.s-upd-sub{font-size:11px;color:var(--dim);transition:color .35s}
 .mlabel{font-size:13px;font-weight:600;min-width:66px;text-align:center;transition:color .35s}
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 12px 8px}
 .card{background:var(--card);border-radius:var(--r);padding:14px 12px;border:1px solid var(--border);display:flex;flex-direction:column;gap:5px;box-shadow:0 4px 14px var(--shadow);transition:background .35s,border .35s,box-shadow .35s}
@@ -135,6 +170,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div id="app" class="hidden">
   <div class="header">
     <div class="title-group">
+      <button class="mbtn sett" id="btn-sett" title="设置">⚙</button>
       <button class="mbtn theme" id="btn-theme" title="切换主题">☀</button>
       <button class="mbtn sum" id="btn-sum" title="全部汇总">∑</button>
       <button class="mbtn refresh" id="btn-refresh" title="刷新数据">↻</button>
@@ -165,7 +201,39 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
 </div>
 
-<!-- ─── 刷新确认弹窗 ─── -->
+<!-- ─── 设置弹窗 ─── -->
+<div id="sett-overlay" class="overlay hidden">
+  <div class="s-dialog">
+    <div class="s-head">
+      <h3>设置</h3>
+      <button class="s-close" id="sett-close">✕</button>
+    </div>
+    <div class="s-body">
+      <div class="s-row" id="sett-cat">
+        <span class="s-row-lbl">📂 分类设置</span>
+        <span class="s-row-arrow">›</span>
+      </div>
+      <div class="s-row" id="sett-upd">
+        <span class="s-row-lbl">⬆ 检查更新</span>
+        <span class="s-upd-sub">即将推出</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── 分类设置子弹窗 ─── -->
+<div id="cat-overlay" class="overlay hidden">
+  <div class="sc-dialog">
+    <div class="sc-head">
+      <h3>分类设置 <span class="hint">勾选想独立显示的分类</span></h3>
+      <button class="s-close" id="cat-close">✕</button>
+    </div>
+    <div class="sc-body" id="cat-body"></div>
+    <div class="sc-foot">
+      <div class="sc-hint">💡 未勾选的分类将归入 <b>其他</b></div>
+    </div>
+  </div>
+</div>
 <div id="refresh-overlay" class="overlay hidden">
   <div class="dialog">
     <div class="dialog-icon">↻</div>
@@ -187,7 +255,9 @@ var APP_ID='',APP_SECRET='',BASE='',DETAIL_TABLE='',SUMMARY_TABLE='';
 var FI={text:0,month:1,amount:2,category:3};
 var SI={no:0,desc:1,month:2,type:3,amount:4};
 
-var COLORS={餐饮:'#ff6b6b',购物:'#4dabf7',交通:'#ffa94d',娱乐:'#9775fa',通讯:'#69db7c',生活:'#ffd43b',其它:'#868e96',其他:'#868e96',收入:'#00c853'};
+var COLORS={餐饮:'#ff6b6b',购物:'#4dabf7',交通:'#ffa94d',娱乐:'#9775fa',通讯:'#69db7c',生活:'#ffd43b',医疗:'#ff8787',住房:'#b197fc',教育:'#74c0fc',服饰:'#f06595',数码:'#38d9a9',运动:'#20c997',宠物:'#e599f7',其它:'#868e96',其他:'#868e96',收入:'#00c853'};
+var DEFAULT_CATS=['餐饮','购物','交通','娱乐','通讯'];
+var ALL_CATS=['餐饮','购物','交通','娱乐','通讯','医疗','住房','教育','服饰','生活','数码','运动','宠物'];
 var THEMES={dark:{tooltipBg:'#1a1a2e',tooltipBorder:'#2a2a4a',tooltipText:'#e0e0e0',axisLabel:'#888',splitLine:'#222',axisLine:'#2a2a4a',yLabel:'#ddd',barLabel:'#aaa',pieLabel:'#aaa',labelLine:'#555',itemBorder:'#0f0f1a'},light:{tooltipBg:'#ffffff',tooltipBorder:'#ddd6cc',tooltipText:'#3d3a36',axisLabel:'#9e9a95',splitLine:'#e8e2d8',axisLine:'#ddd6cc',yLabel:'#3d3a36',barLabel:'#9e9a95',pieLabel:'#7a7670',labelLine:'#ccc',itemBorder:'#fff'}};
 var activeTheme=localStorage.getItem('fa_theme')||'light';
 var CUR_THEME=THEMES[activeTheme];
@@ -195,6 +265,7 @@ var now=new Date();
 var curMonth=now.getFullYear()+'-'+pad2(now.getMonth()+1);
 var summaryRecords=[];
 var detailRecords=[];
+var enabledCats=[];
 var isTotalMode=false;
 var detailPage=0;
 var PAGE_SIZE=15;
@@ -223,6 +294,9 @@ function loadConfig(){
   BASE=localStorage.getItem('fa_base')||'';
   DETAIL_TABLE=localStorage.getItem('fa_detail')||'';
   SUMMARY_TABLE=localStorage.getItem('fa_summary')||'';
+  var saved=localStorage.getItem('fa_cats');
+  if(saved){try{enabledCats=JSON.parse(saved);if(!enabledCats.length)throw 1}catch(e){enabledCats=DEFAULT_CATS.slice()}}
+  else enabledCats=DEFAULT_CATS.slice();
 }
 function saveConfig(){
   localStorage.setItem('fa_appid',APP_ID);
@@ -313,7 +387,7 @@ function getMonthSummary(month){
   return{income:inc,expense:exp};
 }
 
-// ═══ 明细表：分类汇总 ═══
+// ═══ 明细表：分类汇总（未启用分类归入「其他」）═══
 function catSummaryFromDetail(month){
   var m={};
   for(var i=0;i<detailRecords.length;i++){
@@ -323,6 +397,7 @@ function catSummaryFromDetail(month){
     if(month&&r[FI.month]!==month)continue;
     var catArr=r[FI.category];
     var cat=(catArr&&catArr[0])||'其它';
+    if(enabledCats.indexOf(cat)<0)cat='其他';
     var amt=r[FI.amount]||0;
     if(!amt)continue;
     m[cat]=(m[cat]||0)+amt;
@@ -508,6 +583,7 @@ function renderDetails(month){
     var amt=r[FI.amount]||0;
     var catArr=r[FI.category];
     var cat=(catArr&&catArr[0])||'其它';
+    if(enabledCats.indexOf(cat)<0)cat='其他';
     var dm_full = txt.match(/(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})/);
     if (dm_full) {
         var dateStr = dm_full[1] + ' ' + dm_full[2];
@@ -595,7 +671,55 @@ document.getElementById('btn-login').addEventListener('click',function(){
   init();
 });
 
-// ═══ 初始化 ═══
+// ═══ 设置 ═══
+function showSett(){document.getElementById('sett-overlay').classList.remove('hidden')}
+function hideSett(){document.getElementById('sett-overlay').classList.add('hidden')}
+function showCat(){document.getElementById('cat-overlay').classList.remove('hidden')}
+function hideCat(){document.getElementById('cat-overlay').classList.add('hidden')}
+
+function renderCatSettings(){
+  var html='';
+  for(var i=0;i<ALL_CATS.length;i++){
+    var c=ALL_CATS[i];
+    var checked=enabledCats.indexOf(c)>=0?' checked':'';
+    var dot=COLORS[c]||'#868e96';
+    html+='<div class="sc-item"><input type="checkbox" id="cb-'+i+'" data-cat="'+c+'"'+checked+'><label for="cb-'+i+'"><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:'+dot+';margin-right:6px"></span>'+c+'</label></div>';
+  }
+  document.getElementById('cat-body').innerHTML=html;
+  // 绑定事件
+  for(var i=0;i<ALL_CATS.length;i++){
+    (function(idx){
+      document.getElementById('cb-'+idx).addEventListener('change',function(){
+        var cat=ALL_CATS[idx];
+        var pos=enabledCats.indexOf(cat);
+        if(this.checked&&pos<0)enabledCats.push(cat);
+        else if(!this.checked&&pos>=0)enabledCats.splice(pos,1);
+        localStorage.setItem('fa_cats',JSON.stringify(enabledCats));
+        // 切分类后自动刷新图表，不重新拉数据
+        if(pieChart){pieChart.dispose();pieChart=null}
+        if(hbarChart){hbarChart.dispose();hbarChart=null}
+        render();
+      });
+    })(i);
+  }
+}
+
+document.getElementById('btn-sett').addEventListener('click',function(){
+  renderCatSettings();
+  showSett();
+});
+document.getElementById('sett-close').addEventListener('click',hideSett);
+document.getElementById('sett-overlay').addEventListener('click',function(e){
+  if(e.target===this)hideSett();
+});
+document.getElementById('sett-cat').addEventListener('click',function(){showCat()});
+document.getElementById('cat-close').addEventListener('click',function(){hideCat();renderCatSettings()});
+document.getElementById('cat-overlay').addEventListener('click',function(e){
+  if(e.target===this){hideCat();renderCatSettings()}
+});
+document.getElementById('sett-upd').addEventListener('click',function(){
+  alert('检查更新功能正在开发中，敬请期待。');
+});
 function init(){
   loadConfig();
   applyTheme(activeTheme);
