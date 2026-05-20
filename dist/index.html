@@ -12,7 +12,7 @@
 :root{--bg:#0f0f1a;--card:#1a1a2e;--card2:#16213e;--accent:#4facfe;--income:#00c853;--expense:#ff5252;--net:#ffd600;--text:#e0e0e0;--dim:#888;--border:#2a2a4a;--shadow:rgba(0,0,0,.25);--r:16px;--h4-border:#4facfe}
 [data-theme="light"]{--bg:#f5f0e8;--card:#ffffff;--card2:#f0ebe3;--accent:#6b9fd4;--income:#4caf50;--expense:#e57373;--net:#f9a825;--text:#3d3a36;--dim:#9e9a95;--border:#ddd6cc;--shadow:rgba(0,0,0,.08);--h4-border:#6b9fd4}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-tap-highlight-color:transparent;overflow-y:scroll;transition:background .35s,color .35s}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-tap-highlight-color:transparent;overflow-y:scroll;transition:background .35s,color .35s}.lock-scroll{overflow:hidden!important}
 .hidden{display:none!important}
 .status-page{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:32px 24px;text-align:center;transition:background .35s}
 .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:16px}
@@ -79,6 +79,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .sc-foot .sc-hint b{font-weight:600;color:var(--text)}
 /* ─── 检查更新行（占位） ─── */
 .s-upd-sub{font-size:11px;color:var(--dim);transition:color .35s}
+/* ─── 关于弹窗 ─── */
+.abt-dialog{background:var(--card);border:1px solid var(--border);border-radius:var(--r);width:300px;box-shadow:0 8px 32px rgba(0,0,0,.3);transition:background .35s,border .35s}
+.abt-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 10px;border-bottom:1px solid var(--border);transition:border-color .35s}
+.abt-head h3{font-size:15px;font-weight:700;color:var(--text);transition:color .35s}
+.abt-body{padding:18px;text-align:center}
+.abt-icon{font-size:36px;margin-bottom:6px}
+.abt-name{font-size:17px;font-weight:700;color:var(--text);margin-bottom:2px;transition:color .35s}
+.abt-ver{font-size:12px;color:var(--dim);margin-bottom:14px;transition:color .35s}
+.abt-desc{font-size:12px;color:var(--text);line-height:1.6;text-align:left;transition:color .35s}
+.abt-divider{height:1px;background:var(--border);margin:14px 0;transition:background .35s}
+.abt-info{display:flex;justify-content:space-between;padding:6px 0;font-size:12px}
+.abt-lbl{color:var(--dim);transition:color .35s}
+.abt-val{color:var(--text);font-weight:500;transition:color .35s}
+.abt-footer{font-size:12px;color:var(--dim);margin-top:4px;transition:color .35s}
+/* ─── 弹窗动画 ─── */
+.overlay:not(.hidden) .s-dialog,.overlay:not(.hidden) .sc-dialog,.overlay:not(.hidden) .dialog,.overlay:not(.hidden) .abt-dialog{animation:dialogIn .2s ease-out}
+@keyframes dialogIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
 .mlabel{font-size:13px;font-weight:600;min-width:66px;text-align:center;transition:color .35s}
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 12px 8px}
 .card{background:var(--card);border-radius:var(--r);padding:14px 12px;border:1px solid var(--border);display:flex;flex-direction:column;gap:5px;box-shadow:0 4px 14px var(--shadow);transition:background .35s,border .35s,box-shadow .35s}
@@ -108,7 +125,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .pg button{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:8px;width:66px;height:28px;font-size:11px;cursor:pointer;transition:background .2s,border .2s,color .2s}
 .pg button:disabled{opacity:.4;cursor:not-allowed}
 .pg-info{font-size:10px;color:var(--dim)}
-.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:100;transition:background .35s}
+.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:100;transition:background .35s;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .dialog{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:28px 24px 20px;width:280px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.3);transition:background .35s,border .35s}
 .dialog-icon{font-size:36px;margin-bottom:8px;color:var(--accent)}
 .dialog-msg{font-size:15px;font-weight:600;margin-bottom:4px;line-height:1.5}
@@ -216,6 +233,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <span class="s-row-lbl">⬆ 检查更新</span>
         <span class="s-upd-sub" id="sett-ver">v</span>
       </div>
+      <div class="s-row" id="sett-abt">
+        <span class="s-row-lbl">ℹ️ 关于</span>
+        <span class="s-row-arrow">›</span>
+      </div>
     </div>
   </div>
 </div>
@@ -243,6 +264,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <div class="dialog-sub" style="font-size:12px;color:var(--dim);margin-top:8px;padding:8px 12px;background:var(--card2);border-radius:8px;line-height:1.5;font-weight:400" id="upd-tip">💡 更新软件后请让 Agent 更新配套 Skill</div>
     <div class="dialog-btns" id="upd-btns">
       <button class="dbtn dbtn-cancel" id="upd-cancel">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── 关于弹窗 ─── -->
+<div id="abt-overlay" class="overlay hidden">
+  <div class="abt-dialog">
+    <div class="abt-head">
+      <h3>关于</h3>
+      <button class="s-close" id="abt-close">✕</button>
+    </div>
+    <div class="abt-body">
+      <div class="abt-icon">📊</div>
+      <div class="abt-name">飞书记账</div>
+      <div class="abt-ver" id="abt-ver">v1.2.1</div>
+      <div class="abt-desc">个人记账仪表盘。通过 AI 智能助手完成自然语言记账，数据存储于飞书多维表格，支持图表可视化分析。</div>
+      <div class="abt-divider"></div>
+      <div class="abt-info"><span class="abt-lbl">开发者</span><span class="abt-val">Naeem</span></div>
+      <div class="abt-info"><span class="abt-lbl">技术栈</span><span class="abt-val">Capacitor + ECharts</span></div>
+      <div class="abt-info"><span class="abt-lbl">开源地址</span><span class="abt-val"><a href="https://github.com/NaeemTC/feishu-accounting-skill" target="_blank" style="color:var(--accent);text-decoration:none">GitHub</a></span></div>
+      <div class="abt-divider"></div>
+      <div class="abt-footer">Made with ❤️</div>
     </div>
   </div>
 </div>
@@ -282,7 +325,7 @@ var enabledCats=[];
 var isTotalMode=false;
 var detailPage=0;
 var GITHUB_REPO='NaeemTC/feishu-accounting-skill';
-var APP_VERSION='1.2.0';
+var APP_VERSION='1.2.1';
 var PAGE_SIZE=15;
 var pieChart=null,barChart=null,lineChart=null,hbarChart=null;
 var cachedToken='',cachedTokenExp=0;
@@ -530,27 +573,29 @@ function renderBar(){
   var el=document.getElementById('c-bar');
   if(!el)return;
   if(!barChart)barChart=echarts.init(el,null,{renderer:'svg'});
-  var ms=getMonthList().slice(0,6);
+  var ms=getMonthList();
   var incD=[],expD=[];
   for(var i=0;i<ms.length;i++){
     var d=getMonthSummary(ms[i]);
     incD.push(d.income);expD.push(d.expense);
   }
-  barChart.setOption({
+  var opt={
     backgroundColor:'transparent',
     tooltip:{trigger:'axis',confine:true,formatter:function(p){
       var s=p[0].name+'<br/>';
       for(var i=0;i<p.length;i++)s+='<span style="color:'+p[i].color+'">●</span> '+p[i].seriesName+': ¥'+p[i].value.toFixed(2)+'<br/>';
       return s;
     },backgroundColor:CUR_THEME.tooltipBg,borderColor:CUR_THEME.tooltipBorder,textStyle:{color:CUR_THEME.tooltipText,fontSize:12}},
-    grid:{left:42,right:10,top:10,bottom:22},
+    grid:{left:42,right:14,top:10,bottom:22},
     xAxis:{type:'category',data:ms.map(function(m){return m.slice(5)}),axisLabel:{color:CUR_THEME.axisLabel,fontSize:10},axisLine:{lineStyle:{color:CUR_THEME.axisLine}}},
     yAxis:{type:'value',axisLabel:{color:CUR_THEME.axisLabel,fontSize:10,formatter:function(v){return v>=1000?(v/1000)+'k':v}},splitLine:{lineStyle:{color:CUR_THEME.splitLine}},axisLine:{show:false}},
     series:[
       {name:'收入',type:'bar',data:incD,itemStyle:{color:'#00c853',borderRadius:[3,3,0,0]},barMaxWidth:24},
       {name:'支出',type:'bar',data:expD,itemStyle:{color:'#ff5252',borderRadius:[3,3,0,0]},barMaxWidth:24}
     ]
-  });
+  };
+  if(ms.length>3)opt.dataZoom=[{type:'inside',start:100-(3/ms.length*100),end:100}];
+  barChart.setOption(opt);
 }
 
 function renderLine(month){
@@ -571,7 +616,7 @@ function renderLine(month){
     lineChart.setOption({title:{text:'暂无日趋势数据',left:'center',top:'center',textStyle:{color:'#666',fontSize:13}}});
     return;
   }
-  lineChart.setOption({
+  var optL={
     backgroundColor:'transparent',
     title:{show:false},
     tooltip:{trigger:'axis',confine:true,formatter:function(p){return p[0].name+'<br/><span style="color:'+p[0].color+'">●</span> ¥'+p[0].value.toFixed(2)},backgroundColor:CUR_THEME.tooltipBg,borderColor:CUR_THEME.tooltipBorder,textStyle:{color:CUR_THEME.tooltipText,fontSize:12}},
@@ -579,7 +624,9 @@ function renderLine(month){
     xAxis:{type:'category',data:days.map(function(d){return d.slice(5)}),axisLabel:{color:CUR_THEME.axisLabel,fontSize:10},axisLine:{lineStyle:{color:CUR_THEME.axisLine}}},
     yAxis:{type:'value',axisLabel:{color:CUR_THEME.axisLabel,fontSize:10,formatter:function(v){return '¥'+v}},splitLine:{lineStyle:{color:CUR_THEME.splitLine}},axisLine:{show:false}},
     series:[{type:'line',data:days.map(function(d){return Math.round(dayMap[d]*100)/100}),smooth:true,symbol:'circle',symbolSize:7,lineStyle:{color:'#4facfe',width:2.5},itemStyle:{color:'#4facfe'},areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(79,172,254,0.25)'},{offset:1,color:'rgba(79,172,254,0)'}]}}}]
-  });
+  };
+  if(days.length>10)optL.dataZoom=[{type:'inside',start:100-(10/days.length*100),end:100}];
+  lineChart.setOption(optL);
 }
 
 function renderDetails(month){
@@ -687,8 +734,8 @@ document.getElementById('btn-login').addEventListener('click',function(){
 });
 
 // ═══ 设置 ═══
-function showSett(){document.getElementById('sett-overlay').classList.remove('hidden')}
-function hideSett(){document.getElementById('sett-overlay').classList.add('hidden')}
+function showSett(){document.body.classList.add('lock-scroll');document.getElementById('sett-overlay').classList.remove('hidden')}
+function hideSett(){document.getElementById('sett-overlay').classList.add('hidden');document.body.classList.remove('lock-scroll')}
 function showCat(){document.getElementById('cat-overlay').classList.remove('hidden')}
 function hideCat(){document.getElementById('cat-overlay').classList.add('hidden')}
 
@@ -725,17 +772,13 @@ document.getElementById('btn-sett').addEventListener('click',function(){
   showSett();
 });
 document.getElementById('sett-close').addEventListener('click',hideSett);
-document.getElementById('sett-overlay').addEventListener('click',function(e){
-  if(e.target===this)hideSett();
-});
+document.getElementById('sett-overlay').addEventListener('click',function(e){});
 document.getElementById('sett-cat').addEventListener('click',function(){showCat()});
 document.getElementById('cat-close').addEventListener('click',function(){hideCat();renderCatSettings()});
-document.getElementById('cat-overlay').addEventListener('click',function(e){
-  if(e.target===this){hideCat();renderCatSettings()}
-});
+document.getElementById('cat-overlay').addEventListener('click',function(e){});
 // ═══ 检查更新 ═══
-function showUpd(){document.getElementById('upd-overlay').classList.remove('hidden')}
-function hideUpd(){document.getElementById('upd-overlay').classList.add('hidden')}
+function showUpd(){document.body.classList.add('lock-scroll');document.getElementById('upd-overlay').classList.remove('hidden')}
+function hideUpd(){document.getElementById('upd-overlay').classList.add('hidden');document.body.classList.remove('lock-scroll')}
 function showUpdLoading(){
   document.getElementById('upd-icon').textContent='⬆';
   document.getElementById('upd-msg').textContent='正在检查更新...';
@@ -807,6 +850,15 @@ document.getElementById('sett-upd').addEventListener('click',checkUpdate);
 document.getElementById('upd-overlay').addEventListener('click',function(e){
   if(e.target===this)hideUpd();
 });
+// ═══ 关于 ═══
+function showAbout(){document.body.classList.add('lock-scroll');document.getElementById('abt-overlay').classList.remove('hidden')}
+function hideAbout(){document.getElementById('abt-overlay').classList.add('hidden');document.body.classList.remove('lock-scroll')}
+document.getElementById('sett-abt').addEventListener('click',function(){
+  document.getElementById('abt-ver').textContent='v'+APP_VERSION;
+  showAbout();
+});
+document.getElementById('abt-close').addEventListener('click',hideAbout);
+document.getElementById('abt-overlay').addEventListener('click',function(e){});
 function init(){
   loadConfig();
   applyTheme(activeTheme);
@@ -872,8 +924,8 @@ window.addEventListener('resize',function(){
 });
 
 // ═══ 刷新数据 ═══
-function showOverlay(){document.getElementById('refresh-overlay').classList.remove('hidden')}
-function hideOverlay(){document.getElementById('refresh-overlay').classList.add('hidden')}
+function showOverlay(){document.body.classList.add('lock-scroll');document.getElementById('refresh-overlay').classList.remove('hidden')}
+function hideOverlay(){document.getElementById('refresh-overlay').classList.add('hidden');document.body.classList.remove('lock-scroll')}
 
 function doRefresh(){
   hideOverlay();
