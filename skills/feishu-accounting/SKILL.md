@@ -1,7 +1,7 @@
 ---
 name: feishu-accounting
 description: 飞书多维表格记账系统完整技能包。包含两步：1）运行 feishu-accounting-setup 引导用户完成飞书应用创建、多维表格搭建、凭证获取；2）使用 record_bill.py 进行日常记账（支持本地存储 + 飞书多维表格同步）。**同步规则：支出写明细表+汇总表，收入只写汇总表（明细表仅用于 App 仪表盘展示消费明细）。**
-version: 1.2.2
+version: 1.2.3
 author: Naeem
 homepage: https://github.com/NaeemTC/feishu-accounting-skill
 tags: [feishu, bitable, accounting, setup]
@@ -35,10 +35,26 @@ tags: [feishu, bitable, accounting, setup]
 ### Step 1：安装 feishu-cli
 
 ```bash
-curl -L --max-time 60 -o /tmp/feishu-cli.tar.gz \
-  "https://github.com/riba2534/feishu-cli/releases/download/v1.25.0/feishu-cli_v1.25.0_linux-amd64.tar.gz"
+# 安装到 ~/.feishu-cli/bin/（无需 sudo）
+INSTALL_DIR="$HOME/.feishu-cli/bin"
+mkdir -p "$INSTALL_DIR"
+
+# 直接从 GitHub 下载（不走第三方代理）
+curl -L --max-time 120 \
+  "https://github.com/riba2534/feishu-cli/releases/latest/download/feishu-cli_linux-amd64.tar.gz" \
+  -o /tmp/feishu-cli.tar.gz
+
 cd /tmp && tar -xzf feishu-cli.tar.gz
-sudo cp feishu-cli_v1.25.0_linux-amd64/feishu-cli /usr/local/bin/
+cp feishu-cli_linux-amd64/feishu-cli "$INSTALL_DIR/"
+chmod +x "$INSTALL_DIR/feishu-cli"
+
+# 写入 PATH（如果 ~/.bashrc 里还没有）
+SHELL_RC="$HOME/.bashrc"
+if ! grep -q "$INSTALL_DIR" "$SHELL_RC" 2>/dev/null; then
+  echo "export PATH=\"\$HOME/.feishu-cli/bin:\$PATH\"" >> "$SHELL_RC"
+fi
+export PATH="$HOME/.feishu-cli/bin:$PATH"
+
 feishu-cli --version
 ```
 
