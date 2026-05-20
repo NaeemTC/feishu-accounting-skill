@@ -40,11 +40,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .month-sel{display:flex;align-items:center;gap:6px;flex:1;justify-content:center}
 .mbtn{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s,border .2s,color .2s,transform .2s,box-shadow .2s}
 .mbtn:active{background:var(--border)}
-.mbtn.sum{width:34px;height:34px;font-size:15px;font-weight:700}
+.mbtn.hd{width:30px;height:30px;font-size:14px}
+.mbtn.hd.s{font-size:16px;font-weight:700}
+.mbtn.hd.rf{font-size:17px}
 .mbtn.pressed{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important;transform:scale(.93);box-shadow:inset 0 2px 6px rgba(0,0,0,.45)}
-.mbtn.theme{width:34px;height:34px;font-size:16px}
-.mbtn.refresh{width:34px;height:34px;font-size:18px}
-.mbtn.sett{width:34px;height:34px;font-size:17px}
 .mbtn.sett:active{transform:rotate(45deg);transition:transform .3s}
 .mbtn.refresh:active{transform:rotate(180deg);transition:transform .3s}
 /* ─── 设置弹窗 ─── */
@@ -170,10 +169,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div id="app" class="hidden">
   <div class="header">
     <div class="title-group">
-      <button class="mbtn sett" id="btn-sett" title="设置">⚙</button>
-      <button class="mbtn theme" id="btn-theme" title="切换主题">☀</button>
-      <button class="mbtn sum" id="btn-sum" title="全部汇总">∑</button>
-      <button class="mbtn refresh" id="btn-refresh" title="刷新数据">↻</button>
+      <button class="mbtn hd" id="btn-sett" title="设置">⚙</button>
+      <button class="mbtn hd" id="btn-theme" title="切换主题">☀</button>
+      <button class="mbtn hd s" id="btn-sum" title="全部汇总">∑</button>
+      <button class="mbtn hd rf" id="btn-refresh" title="刷新数据">↻</button>
     </div>
     <div class="month-sel">
       <button class="mbtn" id="btn-prev">‹</button>
@@ -215,7 +214,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       </div>
       <div class="s-row" id="sett-upd">
         <span class="s-row-lbl">⬆ 检查更新</span>
-        <span class="s-upd-sub">即将推出</span>
+        <span class="s-upd-sub" id="sett-ver">v</span>
       </div>
     </div>
   </div>
@@ -234,6 +233,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
   </div>
 </div>
+
+<!-- ─── 检查更新弹窗 ─── -->
+<div id="upd-overlay" class="overlay hidden">
+  <div class="dialog" style="width:300px">
+    <div class="dialog-icon" id="upd-icon" style="font-size:32px">⬆</div>
+    <div class="dialog-msg" id="upd-msg">正在检查更新...</div>
+    <div class="dialog-sub" id="upd-sub" style="font-size:12px;color:var(--dim);margin-top:4px"></div>
+    <div class="dialog-sub" style="font-size:12px;color:var(--dim);margin-top:8px;padding:8px 12px;background:var(--card2);border-radius:8px;line-height:1.5;font-weight:400" id="upd-tip">💡 更新软件后请让 Agent 更新配套 Skill</div>
+    <div class="dialog-btns" id="upd-btns">
+      <button class="dbtn dbtn-cancel" id="upd-cancel">取消</button>
+    </div>
+  </div>
+</div>
+
 <div id="refresh-overlay" class="overlay hidden">
   <div class="dialog">
     <div class="dialog-icon">↻</div>
@@ -268,6 +281,8 @@ var detailRecords=[];
 var enabledCats=[];
 var isTotalMode=false;
 var detailPage=0;
+var GITHUB_REPO='NaeemTC/feishu-accounting-skill';
+var APP_VERSION='1.2.0';
 var PAGE_SIZE=15;
 var pieChart=null,barChart=null,lineChart=null,hbarChart=null;
 var cachedToken='',cachedTokenExp=0;
@@ -705,6 +720,7 @@ function renderCatSettings(){
 }
 
 document.getElementById('btn-sett').addEventListener('click',function(){
+  document.getElementById('sett-ver').textContent='v'+APP_VERSION;
   renderCatSettings();
   showSett();
 });
@@ -717,8 +733,79 @@ document.getElementById('cat-close').addEventListener('click',function(){hideCat
 document.getElementById('cat-overlay').addEventListener('click',function(e){
   if(e.target===this){hideCat();renderCatSettings()}
 });
-document.getElementById('sett-upd').addEventListener('click',function(){
-  alert('检查更新功能正在开发中，敬请期待。');
+// ═══ 检查更新 ═══
+function showUpd(){document.getElementById('upd-overlay').classList.remove('hidden')}
+function hideUpd(){document.getElementById('upd-overlay').classList.add('hidden')}
+function showUpdLoading(){
+  document.getElementById('upd-icon').textContent='⬆';
+  document.getElementById('upd-msg').textContent='正在检查更新...';
+  document.getElementById('upd-sub').textContent='';
+  document.getElementById('upd-btns').innerHTML='<button class="dbtn dbtn-cancel" id="upd-cancel2">取消</button>';
+  document.getElementById('upd-cancel2').addEventListener('click',hideUpd);
+}
+function showUpdResult(latestVer,dlUrl){
+  var cur=APP_VERSION;
+  var cmp=function(a,b){
+    var pa=a.replace(/^v/,'').split('.').map(Number);
+    var pb=b.replace(/^v/,'').split('.').map(Number);
+    for(var i=0;i<3;i++){
+      if((pa[i]||0)>(pb[i]||0))return 1;
+      if((pa[i]||0)<(pb[i]||0))return -1;
+    }
+    return 0;
+  };
+  var hasNew=cmp(latestVer,cur)>0;
+  if(hasNew){
+    document.getElementById('upd-icon').textContent='📥';
+    document.getElementById('upd-msg').textContent='发现新版本 '+latestVer;
+    document.getElementById('upd-sub').textContent='当前版本 '+cur+' → '+latestVer;
+    document.getElementById('upd-btns').innerHTML=
+      '<button class="dbtn dbtn-cancel" id="upd-cancel3">稍后</button>'+
+      '<button class="dbtn dbtn-confirm" id="upd-dl">下载更新</button>';
+    document.getElementById('upd-cancel3').addEventListener('click',hideUpd);
+    document.getElementById('upd-dl').addEventListener('click',function(){
+      window.open(dlUrl,'_system');
+      hideUpd();
+    });
+  } else {
+    document.getElementById('upd-icon').textContent='✅';
+    document.getElementById('upd-msg').textContent='已是最新版本';
+    document.getElementById('upd-sub').textContent='v'+cur;
+    document.getElementById('upd-btns').innerHTML='<button class="dbtn dbtn-confirm" id="upd-ok">知道了</button>';
+    document.getElementById('upd-ok').addEventListener('click',hideUpd);
+  }
+}
+function checkUpdate(){
+  showUpdLoading();
+  showUpd();
+  // 用原生请求避免CORS问题
+  var updUrl='https://api.github.com/repos/'+GITHUB_REPO+'/releases/latest';
+  (window.Capacitor?nativeReq:function(u,m,h){return fetch(u,{method:m,headers:h})})(updUrl,'GET',{Accept:'application/vnd.github.v3+json'}).then(function(d){
+    if(!d||!d.tag_name)throw new Error('无法获取最新版本');
+    // 找到APK下载链接
+    var dlUrl='';
+    if(d.assets){
+      for(var i=0;i<d.assets.length;i++){
+        if(d.assets[i].name.indexOf('.apk')>0){
+          dlUrl=d.assets[i].browser_download_url;
+          break;
+        }
+      }
+    }
+    showUpdResult(d.tag_name,dlUrl);
+  }).catch(function(e){
+    document.getElementById('upd-icon').textContent='⚠️';
+    document.getElementById('upd-msg').textContent='检查更新失败';
+    document.getElementById('upd-sub').textContent=e.message||'网络错误';
+    document.getElementById('upd-btns').innerHTML='<button class="dbtn dbtn-confirm" id="upd-retry">重试</button><button class="dbtn dbtn-cancel" id="upd-cancel4">关闭</button>';
+    document.getElementById('upd-retry').addEventListener('click',checkUpdate);
+    document.getElementById('upd-cancel4').addEventListener('click',hideUpd);
+  });
+}
+
+document.getElementById('sett-upd').addEventListener('click',checkUpdate);
+document.getElementById('upd-overlay').addEventListener('click',function(e){
+  if(e.target===this)hideUpd();
 });
 function init(){
   loadConfig();

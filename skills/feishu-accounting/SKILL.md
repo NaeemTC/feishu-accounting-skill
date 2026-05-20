@@ -168,7 +168,7 @@ feishu-cli bitable field list --base-token $BASE_TOKEN --table-id $DETAIL_TABLE_
 # 找到分类字段ID后
 feishu-cli bitable field update --base-token $BASE_TOKEN --table-id $DETAIL_TABLE_ID \
   --field-id <分类字段ID> \
-  --config '{"field_name":"分类","type":"select","options":[{"name":"其它"},{"name":"生活"},{"name":"娱乐"},{"name":"通讯"},{"name":"交通"},{"name":"购物"},{"name":"餐饮"}]}'
+  --config '{"field_name":"分类","type":"select","options":[{"name":"餐饮"},{"name":"购物"},{"name":"交通"},{"name":"娱乐"},{"name":"通讯"},{"name":"生活"},{"name":"医疗"},{"name":"住房"},{"name":"教育"},{"name":"服饰"},{"name":"数码"},{"name":"运动"},{"name":"宠物"},{"name":"其它"}]}'
 
 # ── 汇总表字段 ──
 feishu-cli bitable field create --base-token $BASE_TOKEN --table-id $SUMMARY_TABLE_ID \
@@ -189,6 +189,16 @@ feishu-cli bitable field update --base-token $BASE_TOKEN --table-id $SUMMARY_TAB
 feishu-cli bitable field create --base-token $BASE_TOKEN --table-id $SUMMARY_TABLE_ID \
   --config '{"field_name":"金额","type":"number"}'
 ```
+
+> **已有用户升级分类**：如果你之前已经建好表，用以下命令给分类字段补充新选项（13分类）：
+> ```bash
+> # 先找到分类字段ID
+> feishu-cli bitable field list --base-token $BASE_TOKEN --table-id $DETAIL_TABLE_ID
+> # 替换下方 <分类字段ID> 后执行
+> feishu-cli bitable field update --base-token $BASE_TOKEN --table-id $DETAIL_TABLE_ID \
+>   --field-id <分类字段ID> \
+>   --config '{"field_name":"分类","type":"select","options":[{"name":"餐饮"},{"name":"购物"},{"name":"交通"},{"name":"娱乐"},{"name":"通讯"},{"name":"生活"},{"name":"医疗"},{"name":"住房"},{"name":"教育"},{"name":"服饰"},{"name":"数码"},{"name":"运动"},{"name":"宠物"},{"name":"其它"}]}'
+> ```
 
 ### Step 9：输出凭证给用户
 
@@ -319,19 +329,24 @@ python3 scripts/record_bill.py --summary --month 2026-05
 
 | 类型 | 分类 | 关键词 |
 |------|------|--------|
-| 支出 | 餐饮 | 早饭/午饭/晚饭/外卖/咖啡/奶茶/餐厅 |
-| 支出 | 购物 | 超市/衣服/鞋子/电商/淘宝/京东/日用品 |
-| 支出 | 交通 | 打车/地铁/公交/停车/加油/滴滴 |
-| 支出 | 娱乐 | 电影/KTV/旅游/游戏氪金/彩票 |
-| 支出 | 通讯 | 话费/流量/套餐 |
-| 支出 | 医疗 | 医院/药店/挂号/体检 |
-| 支出 | 住房 | 房租/水电/物业/宽带 |
-| 支出 | 教育 | 学费/课程/书/培训 |
-| 收入 | 工资 | 工资/薪资/月薪 |
-| 收入 | 兼职 | 兼职/副业/接单 |
-| 收入 | 投资 | 理财/股票/基金/利息 |
+|| 支出 | 餐饮 | 早饭/午饭/晚饭/外卖/咖啡/奶茶/餐厅 |
+|| 支出 | 购物 | 超市/衣服/鞋子/电商/淘宝/京东/日用品 |
+|| 支出 | 交通 | 打车/地铁/公交/停车/加油/滴滴 |
+|| 支出 | 娱乐 | 电影/KTV/旅游/游戏氪金/彩票 |
+|| 支出 | 通讯 | 话费/流量/套餐 |
+|| 支出 | 医疗 | 医院/药店/挂号/体检 |
+|| 支出 | 住房 | 房租/水电/物业/宽带 |
+|| 支出 | 教育 | 学费/课程/书/培训 |
+|| 支出 | 服饰 | 衣服/鞋子/包包/穿搭/配饰 |
+|| 支出 | 生活 | 日用/日用品/理发/洗衣/五金 |
+|| 支出 | 数码 | 手机/数码/充电器/耳机/硬盘 |
+|| 支出 | 运动 | 健身/运动/游泳/羽毛球/球鞋 |
+|| 支出 | 宠物 | 宠物/猫粮/狗粮/猫砂/疫苗 |
+|| 收入 | 工资 | 工资/薪资/月薪 |
+|| 收入 | 兼职 | 兼职/副业/接单 |
+|| 收入 | 投资 | 理财/股票/基金/利息 |
 
-**飞书分类映射**：本地「医疗/住房/教育/其他/银行/工资/奖金/兼职/投资」→ 飞书统一为「其它」。
+**飞书分类映射**：13个分类在飞书明细表中均有对应选项，无需映射损耗。本地「其他/银行/工资/奖金/兼职/投资」→ 飞书「其它」。
 
 ---
 
