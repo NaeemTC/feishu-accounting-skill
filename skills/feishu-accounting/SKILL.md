@@ -1,7 +1,7 @@
 ---
 name: feishu-accounting
-description: 飞书多维表格记账系统完整技能包。包含两步：1）运行 feishu-accounting-setup 引导用户完成飞书应用创建、多维表格搭建、凭证获取；2）使用 record_bill.py 进行日常记账（支持本地存储 + 飞书多维表格同步）。**同步使用永久有效的 Tenant Token，不再有 7 天过期问题。同步规则：支出写明细表+汇总表，收入只写汇总表（明细表仅用于 App 仪表盘展示消费明细）。**
-version: 1.4.0
+description: 飞书多维表格记账系统完整技能包。包含两步：1）运行 feishu-accounting-setup 引导用户完成飞书应用创建、多维表格搭建、凭证获取；2）使用 record_bill.py 进行日常记账（支持本地存储 + 飞书多维表格同步）。**同步使用永久有效的 Tenant Token。单表模式：所有记录写入明细表，通过「类型」字段区分支出和收入。**
+version: 1.3.0
 author: Naeem
 homepage: https://github.com/NaeemTC/feishu-accounting-skill
 tags: [feishu, bitable, accounting, setup, permissions]
@@ -16,7 +16,7 @@ tags: [feishu, bitable, accounting, setup, permissions]
 | 阶段 | 触发条件 | 做什么 |
 |------|----------|--------|
 | **Setup** | 用户请求配置记账系统 | 引导创建飞书应用 → 一键搭建多维表格 → 输出凭证 |
-| **Usage** | 用户记账（说金额/上传图片/查账单） | 解析记账输入 → 写本地 bills/ → 同步飞书两个表 |
+| **Usage** | 用户记账（说金额/上传图片/查账单） | 解析记账输入 → 写本地 bills/ → 同步飞书明细表（单表模式） |
 
 ---
 
@@ -88,24 +88,23 @@ python3 scripts/setup_bitable.py \
 脚本会自动完成：
 1. 获取 Tenant Token（永久有效）
 2. 创建多维表格「个人记账本」
-3. 创建明细表 + 汇总表
-4. 创建所有字段（文本/月份/金额/分类）并补充选项（14个分类选项）
+3. 创建一张明细表（单表模式，支出和收入共用）
+4. 创建所有字段（文本/月份/金额/分类/类型）+ 补充选项（18个分类 + 收支类型选项）
 
-输出 5 个凭证：App ID / App Secret / Base Token / 明细表 Table ID / 汇总表 Table ID
+输出 4 个凭证：App ID / App Secret / Base Token / 明细表 Table ID
 
 ### Step 4：输出凭证给用户
 
-**AI 必须将以下 5 个凭证填入实际值后发送给用户（App ID / App Secret 来自 Step 1 用户提供的值，Base Token / Table ID 来自 Step 3 脚本输出的）：**
+**AI 必须将以下 4 个凭证填入实际值后发送给用户（App ID / App Secret 来自 Step 1 用户提供的值，Base Token / Table ID 来自 Step 3 脚本输出的）：**
 
 > ✅ 飞书记账配置完成！
 >
-> 请保存以下 5 个凭证——首次打开手机 App 时需要按顺序输入：
+> 请保存以下 4 个凭证——首次打开手机 App 时需要按顺序输入：
 >
 > 1. **App ID**：`你的App_ID`
 > 2. **App Secret**：`你的App_Secret`
 > 3. **Base Token**：`你的Base_Token`
 > 4. **明细表 Table ID**：`你的明细表ID`
-> 5. **汇总表 Table ID**：`你的汇总表ID`
 >
 > 输入后 App 就能正常查看你的账单数据了。
 >
@@ -123,7 +122,6 @@ FEISHU_APP_ID=你的App_ID
 FEISHU_APP_SECRET=你的App_Secret
 FEISHU_BASE_TOKEN=你的Base_Token
 FEISHU_DETAIL_TABLE_ID=你的明细表ID
-FEISHU_SUMMARY_TABLE_ID=你的汇总表ID
 EOF
 ```
 

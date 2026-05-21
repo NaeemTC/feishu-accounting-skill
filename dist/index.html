@@ -512,6 +512,9 @@ function catSummaryFromDetail(month){
   for(var i=0;i<detailRecords.length;i++){
     var r=detailRecords[i];
     if(month&&r[FI.month]!==month)continue;
+    var type=r[FI.type]||'';
+    if(Array.isArray(type))type=type[0]||'';
+    if(type==='收入')continue;
     var catArr=r[FI.category];
     var cat=(catArr&&catArr[0])||'其它';
     if(enabledCats.indexOf(cat)<0)cat='其他';
@@ -525,7 +528,7 @@ function catSummaryFromDetail(month){
   return out;
 }
 
-// ═══ 明细表：含"-"的记录 ═══
+// ═══ 明细表：支出记录（含"-"日期标记）═══
 function getDashRecords(month){
   var out=[];
   for(var i=0;i<detailRecords.length;i++){
@@ -533,6 +536,9 @@ function getDashRecords(month){
     var txt=r[FI.text]||'';
     if(txt.indexOf('-')<0)continue;
     if(month&&r[FI.month]!==month)continue;
+    var type=r[FI.type]||'';
+    if(Array.isArray(type))type=type[0]||'';
+    if(type==='收入')continue;
     out.push(r);
   }
   out.sort(function(a,b){
