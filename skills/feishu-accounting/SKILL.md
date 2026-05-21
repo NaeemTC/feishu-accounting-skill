@@ -1,7 +1,7 @@
 ---
 name: feishu-accounting
 description: 飞书多维表格记账系统完整技能包。包含两步：1）运行 feishu-accounting-setup 引导用户完成飞书应用创建、多维表格搭建、凭证获取；2）使用 record_bill.py 进行日常记账（支持本地存储 + 飞书多维表格同步）。**同步使用永久有效的 Tenant Token。单表模式：所有记录写入明细表，通过「类型」字段区分支出和收入。**
-version: 1.3.0
+version: 1.3.2
 author: Naeem
 homepage: https://github.com/NaeemTC/feishu-accounting-skill
 tags: [feishu, bitable, accounting, setup, permissions]
@@ -70,10 +70,6 @@ python3 scripts/apply_permissions.py \
 
 ---
 
-**用户只需 2 步：**
-1️⃣  点链接 → 确认开通所有权限
-2️⃣  如果是第一次发布该应用，去 版本管理与发布 → 创建版本 → 填写版本号 → 申请发布 → 确认发布（后续追加权限无需再发版）
-
 ### Step 3：一键搭建多维表格
 
 用户提供 App ID + App Secret 后，运行 `setup_bitable.py`（无需安装任何外部工具，直接调飞书 API）：
@@ -109,7 +105,7 @@ python3 scripts/setup_bitable.py \
 > 输入后 App 就能正常查看你的账单数据了。
 >
 > 📊 **多维表格链接**：https://bytedance.feishu.cn/base/`你的Base_Token`
-> （浏览器打开就能直接看到你建的明细表和汇总表）
+> （浏览器打开就能直接看到你建的全量账本数据）
 
 ### Step 5：配置凭证（让 record_bill.py 能用）
 
@@ -155,7 +151,6 @@ EOF
 # 检查凭证
 echo "FEISHU_BASE_TOKEN=${FEISHU_BASE_TOKEN:-未设置}"
 echo "FEISHU_DETAIL_TABLE_ID=${FEISHU_DETAIL_TABLE_ID:-未设置}"
-echo "FEISHU_SUMMARY_TABLE_ID=${FEISHU_SUMMARY_TABLE_ID:-未设置}"
 ```
 
 **如果未设置**，跳回第一阶段（Setup）流程，重新引导用户获取凭证。
@@ -168,7 +163,7 @@ python3 /path/to/scripts/record_bill.py \
   --amount 23.40 --type expense --category 餐饮 --note "午饭"
 
 # 方式二：环境变量注入（适合临时调用）
-FEISHU_BASE_TOKEN=xxx FEISHU_DETAIL_TABLE_ID=xxx FEISHU_SUMMARY_TABLE_ID=xxx \
+FEISHU_BASE_TOKEN=xxx FEISHU_DETAIL_TABLE_ID=xxx \
   python3 /path/to/scripts/record_bill.py \
   --amount 23.40 --type expense --category 餐饮 --note "午饭"
 ```
@@ -187,7 +182,7 @@ FEISHU_BASE_TOKEN=xxx FEISHU_DETAIL_TABLE_ID=xxx FEISHU_SUMMARY_TABLE_ID=xxx \
 | `--feishu` | | 同步飞书（默认开启） |
 | `--no-feishu` | | 禁用飞书同步，仅写本地 |
 
-> **⚠️ 飞书同步规则**：`--type expense`（支出）同时写入明细表和汇总表；`--type income`（收入）仅写入汇总表，明细表只存支出记录（用于 App 仪表盘分类图表展示）。
+> **⚠️ 单表模式**：支出和收入均写入同一张明细表，通过「类型」字段区分。App 端按类型字段分组聚合计算月度收支。
 
 ### 查询命令
 
@@ -231,7 +226,7 @@ python3 scripts/record_bill.py --summary --month 2026-05
 | 收入 | 兼职 | 兼职/副业/接单 |
 | 收入 | 投资 | 理财/股票/基金/利息 |
 
-**飞书分类映射**：13个分类在飞书明细表中均有对应选项，无需映射损耗。本地「其他/银行/工资/奖金/兼职/投资」→ 飞书「其它」。
+**飞书分类映射**：13个支出分类 + 5个收入分类（工资/奖金/兼职/投资/其他），在飞书明细表中均有对应选项，无需映射损耗。
 
 ---
 
@@ -258,8 +253,7 @@ feishu-accounting/
 | `FEISHU_APP_ID` | 飞书应用 App ID（必填） | `cli_xxxxxxxxxxxxxxxx` |
 | `FEISHU_APP_SECRET` | 飞书应用 App Secret（必填） | `xxxxxxxxxxxxxxxxxx` |
 | `FEISHU_BASE_TOKEN` | 多维表格 Base Token | `your_base_token_here` |
-| `FEISHU_DETAIL_TABLE_ID` | 明细表 ID | `tblxxxxxxxxxxxxxxxx` |
-| `FEISHU_SUMMARY_TABLE_ID` | 汇总表 ID | `tblyyyyyyyyyyyyyyyy` |
+| `FEISHU_DETAIL_TABLE_ID` | 明细表 ID（单表，含类型字段区分收支） | `tblxxxxxxxxxxxxxxxx` |
 
 > **无需 User Access Token**：record_bill.py 使用永久有效的 Tenant Token（自动从 App ID + Secret 获取），不再有 7 天过期问题。
 
@@ -274,8 +268,39 @@ feishu-accounting/
 | `sync_to_feishu()` 漏传某些字段 | 只同步了月份/金额/分类，`文本` 和 `单选` 字段未传入。飞书 API 返回 200 但这些字段全 null | 新增飞书字段后，`sync_to_feishu()` 的 config 和函数签名必须同步更新 |
 | Tenant Token 下 `page_size=100` 实际只返回 ~20 条 | 飞书 API 对 Tenant Token 有分页限制，`page_token` 返回 null | 翻页用 `offset += len(records)` 动态累加（而非固定步长）。详见 `references/feishu-base-api-pitfalls.md` |
 | 用 `text.includes('-')` 判断有效记录，漏掉了有效数据 | 明细表有些记录的 `文本` 字段为 null，但金额和分类有效。`text.includes('-')` 会把这些记录全过滤掉 | 判断标准：amount 非 null 且非 0 即可进入聚合，不管 text 是不是 null |
-| `record_bill.py` 只写明细表，汇总表数据缺失 | 汇总表是仪表盘收支数据来源之一，漏写会导致统计数据不完整 | 每次 `add_record()` 必须同时调用 `sync_to_feishu()` 写明细表 + `sync_summary_to_feishu()` 写汇总表 |
-| `.env` 中 FEISHU_APP_ID 没生效，仍用了父 shell 的旧值 | `os.environ.setdefault()` 不覆盖已有变量 | `.env` 加载改用直接赋值 `os.environ[k] = v`。详见 `references/feishu-base-api-pitfalls.md` |
+| `record_bill.py` 飞书同步失败 | 凭证未配置或权限不足 | 检查 .env 文件中的 4 个凭证，确认 `base:record:create` 权限已开通 |
+| `.env` 中 FEISHU_APP_ID 没生效，仍用了父 shell 的旧值 | `os.environ.setdefault()` 不覆盖已有变量 | `.env` 加载改用直接赋值 `os.environ[k] = v` |
+| **APK 端：收入记录混入支出图表/明细列表** | `catSummaryFromDetail()` 和 `getDashRecords()` 没按 FI.type 过滤收入 | 添加 `if(type==='收入')continue;`（参见 `incomeCatSummaryFromDetail` 的写法） |
+| **重装 skill 时把旧 .env 带了过去** | 备份恢复操作保留旧属性（如已不用的 SUMMARY_TABLE_ID） | 全新安装时不应备份旧 .env，让用户重新走 Setup 流程获取新凭证 |
+
+## 🔧 APK 开发与维护
+
+### Git 工作流（重要）
+
+本技能涉及 GitHub 仓库 `NaeemTC/feishu-accounting-skill` 的代码维护。**所有 git 操作必须遵守以下规则：**
+
+1. **任何 commit / push / tag / release 操作前，必须先问用户确认**
+2. 用户说「改了 APK 要先发测试」→ 先 build APK 发给用户测，确认无误再推 git
+3. github-repo-management 的审计清单（token 泄漏、硬编码路径等）必须过一遍
+4. 版本号三处同步：`dist/index.html` 的 `APP_VERSION` + `android/app/build.gradle` 的 `versionName/versionCode` + `SKILL.md` 的 frontmatter
+5. Release 上传 APK 固定命名 `app-release.apk`，使 latest 链接永久有效
+
+### 常见 APK 端 Bug 模式
+
+| Bug | 根因 | 修复 |
+|-----|------|------|
+| 收入记录出现在支出饼图/消费明细/日趋势图中 | `catSummaryFromDetail()` 和 `getDashRecords()` 遍历 detailRecords 时没按 `FI.type` 过滤 | 添加 `var type=r[FI.type]||''; if(Array.isArray(type))type=type[0]||''; if(type==='收入')continue;` |
+| 新安装 APK 提示「正在连接飞书...」无限转圈 | **① 旧版 localStorage 存了过期凭证** — 新应用 ID/Secret 不对应 | 错误页点「重新配置」按钮清除 localStorage，或手动填写新凭证 |
+| | **② JS 声明顺序崩溃（更致命）** — `var DEFAULT_CATS=ALL_CATS.slice()` 写在 `var ALL_CATS=[...]` 之前，`ALL_CATS` 未赋值导致 `undefined.slice()` 抛出 TypeError，脚本在加载期即中断，`init()` 永不执行，线上 spinner 永远转 | 确保 `ALL_CATS` 定义在 `DEFAULT_CATS` 之前。调试方法：用 `browser_console` 看是否有 `Uncaught TypeError`（脚本加载期错误不会被 Promise.catch 捕获） |
+| 主题切换后图表瞬间消失 | `applyTheme` 中 dispose/recreate 图表无过渡 | 已修复：render 后对 chart 容器加 `.chart-fade` 动画类 |
+
+### UI 风格约定
+
+- 按钮反馈：所有可点击元素统一使用 `transform:scale(.88~.97)`，不用 `opacity`
+- 弹窗：必须支持点背景关闭（`if(e.target===this)hideXxx()`）
+- 禁态：`mbtn:disabled` 设 `opacity:.35;cursor:not-allowed;transform:none!important`
+- 过渡：页面切换加 `.fade-in`（`fadeUp` 动画），主题切换图表加 `.chart-fade`
+- 颜色：禁止硬编码 `#666`，必须用 `var(--dim)` 或 `CUR_THEME.axisLabel`
 
 ---
 
