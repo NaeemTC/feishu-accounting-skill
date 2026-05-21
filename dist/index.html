@@ -306,7 +306,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <div class="abt-body">
       <div class="abt-icon">📊</div>
       <div class="abt-name">飞书记账</div>
-      <div class="abt-ver" id="abt-ver">v1.3.0</div>
+      <div class="abt-ver" id="abt-ver">v1.3.2</div>
       <div class="abt-desc">个人记账仪表盘。通过 AI 智能助手完成自然语言记账，数据存储于飞书多维表格，支持图表可视化分析。</div>
       <div class="abt-divider"></div>
       <div class="abt-info"><span class="abt-lbl">开发者</span><span class="abt-val">Naeem</span></div>
@@ -356,7 +356,7 @@ var enabledIncCats=[];
 var isTotalMode=false;
 var detailPage=0;
 var GITHUB_REPO='NaeemTC/feishu-accounting-skill';
-var APP_VERSION='1.3.0';
+var APP_VERSION='1.3.2';
 var PAGE_SIZE=15;
 var pieChart=null,incPieChart=null,barChart=null,lineChart=null,hbarChart=null;
 var cachedToken='',cachedTokenExp=0;
@@ -991,11 +991,20 @@ function showUpdResult(latestVer,dlUrl){
 function checkUpdate(){
   showUpdLoading();
   showUpd();
-  // 用原生请求避免CORS问题
   var updUrl='https://api.github.com/repos/'+GITHUB_REPO+'/releases/latest';
-  (window.Capacitor?nativeReq:function(u,m,h){return fetch(u,{method:m,headers:h})})(updUrl,'GET',{Accept:'application/vnd.github.v3+json'}).then(function(d){
+  var doFetch=window.Capacitor?nativeReq:function(u,m,h){return fetch(u,{method:m,headers:h}).then(function(r){return r.json()})};
+  // 10秒超时
+  var timer=setTimeout(function(){
+    document.getElementById('upd-icon').textContent='⚠️';
+    document.getElementById('upd-msg').textContent='检查更新超时';
+    document.getElementById('upd-sub').textContent='网络连接可能不稳定，请稍后重试';
+    document.getElementById('upd-btns').innerHTML='<button class="dbtn dbtn-confirm" id="upd-retry">重试</button><button class="dbtn dbtn-cancel" id="upd-cancel4">关闭</button>';
+    document.getElementById('upd-retry').addEventListener('click',checkUpdate);
+    document.getElementById('upd-cancel4').addEventListener('click',hideUpd);
+  },10000);
+  doFetch(updUrl,'GET',{Accept:'application/vnd.github.v3+json'}).then(function(d){
+    clearTimeout(timer);
     if(!d||!d.tag_name)throw new Error('无法获取最新版本');
-    // 找到APK下载链接
     var dlUrl='';
     if(d.assets){
       for(var i=0;i<d.assets.length;i++){
@@ -1007,6 +1016,7 @@ function checkUpdate(){
     }
     showUpdResult(d.tag_name,dlUrl);
   }).catch(function(e){
+    clearTimeout(timer);
     document.getElementById('upd-icon').textContent='⚠️';
     document.getElementById('upd-msg').textContent='检查更新失败';
     document.getElementById('upd-sub').textContent=e.message||'网络错误';
