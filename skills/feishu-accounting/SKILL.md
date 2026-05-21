@@ -39,13 +39,13 @@ tags: [feishu, bitable, accounting, setup]
 INSTALL_DIR="$HOME/.feishu-cli/bin"
 mkdir -p "$INSTALL_DIR"
 
-# 直接从 GitHub 下载（不走第三方代理）
-curl -L --max-time 120 \
-  "https://github.com/riba2534/feishu-cli/releases/latest/download/feishu-cli_linux-amd64.tar.gz" \
+# 从 GitHub 官方 Releases 下载（带断点续传）
+curl -L -C - --max-time 600 \
+  "https://github.com/riba2534/feishu-cli/releases/download/v1.26.0/feishu-cli_v1.26.0_linux-amd64.tar.gz" \
   -o /tmp/feishu-cli.tar.gz
 
 cd /tmp && tar -xzf feishu-cli.tar.gz
-cp feishu-cli_linux-amd64/feishu-cli "$INSTALL_DIR/"
+cp feishu-cli_v1.26.0_linux-amd64/feishu-cli "$INSTALL_DIR/"
 chmod +x "$INSTALL_DIR/feishu-cli"
 
 # 写入 PATH（如果 ~/.bashrc 里还没有）
