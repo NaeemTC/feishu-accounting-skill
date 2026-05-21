@@ -325,7 +325,7 @@ var enabledCats=[];
 var isTotalMode=false;
 var detailPage=0;
 var GITHUB_REPO='NaeemTC/feishu-accounting-skill';
-var APP_VERSION='1.2.1';
+var APP_VERSION='1.2.2';
 var PAGE_SIZE=15;
 var pieChart=null,barChart=null,lineChart=null,hbarChart=null;
 var cachedToken='',cachedTokenExp=0;
@@ -450,8 +450,6 @@ function catSummaryFromDetail(month){
   var m={};
   for(var i=0;i<detailRecords.length;i++){
     var r=detailRecords[i];
-    var txt=r[FI.text]||'';
-    if(txt.indexOf('-')>=0)continue;
     if(month&&r[FI.month]!==month)continue;
     var catArr=r[FI.category];
     var cat=(catArr&&catArr[0])||'其它';

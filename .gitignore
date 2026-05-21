@@ -37,3 +37,6 @@ android/capacitor-cordova-android-plugins/build/
 
 # 个人账单数据
 skills/feishu-accounting/bills/
+
+# APK 安装包
+*.apk
