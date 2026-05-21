@@ -219,16 +219,15 @@ FEISHU_SUMMARY_TABLE_ID=你的汇总表ID
 EOF
 ```
 
-### Step 10：把应用加入多维表格（重要！）
+### Step 10：打开多维表格分享权限（重要！）
 
 **⚠️ 必须执行，否则 Tenant Token 无法写入数据：**
 
 1. 打开多维表格：https://bytedance.feishu.cn/base/`你的Base_Token`
-2. 点右上角 **分享** → **添加成员**
-3. 搜索你的应用名称（创建飞书应用时填的名称）
-4. 权限选 **可编辑**，确认添加
+2. 点右上角 **分享**
+3. 找到「组织内获得链接的人」，从「可阅读」改为 **「可编辑」**
 
-这样 Tenant Token 才有写权限，否则报 `91403 you don't have permission`。
+这样 Tenant Token 就有写权限了，否则报 `91403 you don't have permission`。
 
 ### Step 11：询问用户是否安装 App（仪表盘）
 
