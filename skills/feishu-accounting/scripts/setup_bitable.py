@@ -52,8 +52,9 @@ def create_bitable(token: str) -> str:
     """创建多维表格，返回 base_token"""
     url = f"{FEISHU_HOST}/open-apis/base/v3/bases"
     data = api_post(url, {"name": "个人记账本"}, token)
-    base_token = data["base"]["token"]
+    base_token = data["base_token"]
     print(f"✅ 创建多维表格: {base_token}")
+    print(f"🔗 链接: https://bytedance.feishu.cn/base/{base_token}")
     return base_token
 
 
@@ -61,7 +62,7 @@ def create_table(token: str, base_token: str, name: str) -> str:
     """创建数据表，返回 table_id"""
     url = f"{FEISHU_HOST}/open-apis/base/v3/bases/{base_token}/tables"
     data = api_post(url, {"name": name}, token)
-    table_id = data["table"]["table_id"]
+    table_id = data["id"]
     print(f"✅ 创建数据表「{name}」: {table_id}")
     return table_id
 
@@ -74,7 +75,7 @@ def create_field(token: str, base_token: str, table_id: str,
     if options:
         payload["options"] = options
     data = api_post(url, payload, token)
-    field_id = data["field"]["field_id"]
+    field_id = data["id"]
     print(f"✅ 创建字段「{field_name}」({field_type}): {field_id}")
     return field_id
 
@@ -91,7 +92,7 @@ def update_field_options(token: str, base_token: str, table_id: str,
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",
         },
-        method="PATCH",
+        method="PUT",
     )
     with urllib.request.urlopen(req, timeout=15) as resp:
         result = json.loads(resp.read())
