@@ -32,14 +32,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .f-row input{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-size:14px;outline:none;transition:border-color .2s,background .35s,color .35s}
 .f-row input:focus{border-color:var(--accent)}
 .f-row .hint{font-size:10px;color:var(--dim);margin-top:3px}
-.lbtn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:12px;font-size:15px;font-weight:600;cursor:pointer;margin-top:6px}
-.lbtn:active{opacity:.85}
+.lbtn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:12px;font-size:15px;font-weight:600;cursor:pointer;margin-top:6px;transition:transform .15s,opacity .15s}
+.lbtn:active{transform:scale(.97)}
 /* ─── 顶部导航 ─── */
 .header{display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;box-shadow:0 2px 12px var(--shadow);transition:background .35s,border .35s,box-shadow .35s}
 .title-group{display:flex;align-items:center;gap:6px;flex:1;justify-content:center}
 .month-sel{display:flex;align-items:center;gap:6px;flex:1;justify-content:center}
-.mbtn{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s,border .2s,color .2s,transform .2s,box-shadow .2s}
+.mbtn{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s,border .2s,color .2s,transform .2s,box-shadow .2s,opacity .2s}
 .mbtn:active{background:var(--border);transform:scale(.88);transition:background .1s,transform .1s,box-shadow .1s}
+.mbtn:disabled{opacity:.35;cursor:not-allowed;transform:none!important}
 .mbtn.hd{width:30px;height:30px;font-size:14px}
 .mbtn.hd.s{font-size:16px;font-weight:700}
 .mbtn.hd.rf{font-size:17px}
@@ -98,6 +99,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .overlay.closing .s-dialog,.overlay.closing .sc-dialog,.overlay.closing .dialog,.overlay.closing .abt-dialog{animation:dialogOut .15s ease-in forwards}
 @keyframes dialogIn{from{opacity:0;transform:scale(.92) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
 @keyframes dialogOut{from{opacity:1;transform:scale(1) translateY(0)}to{opacity:0;transform:scale(.92) translateY(8px)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeUp .35s ease-out}
+.chart-fade{animation:fadeUp .3s ease-out}
 .mlabel{font-size:13px;font-weight:600;min-width:66px;text-align:center;transition:color .35s}
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 12px 8px}
 .card{background:var(--card);border-radius:var(--r);padding:14px 12px;border:1px solid var(--border);display:flex;flex-direction:column;gap:5px;box-shadow:0 4px 14px var(--shadow);transition:background .35s,border .35s,box-shadow .35s}
@@ -133,8 +137,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .dialog-msg{font-size:15px;font-weight:600;margin-bottom:4px;line-height:1.5}
 .dialog-sub{font-size:12px;color:var(--dim);font-weight:400}
 .dialog-btns{display:flex;gap:10px;justify-content:center;margin-top:18px}
-.dbtn{padding:9px 20px;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;min-width:80px}
-.dbtn-cancel{background:var(--card2);color:var(--text);border:1px solid var(--border);transition:background .2s}
+.dbtn{padding:9px 20px;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;min-width:80px;transition:transform .15s,background .2s,opacity .15s}
+.dbtn:active{transform:scale(.95)}
+.dbtn-cancel{background:var(--card2);color:var(--text);border:1px solid var(--border)}
 .dbtn-cancel:active{background:var(--border)}
 .dbtn-confirm{background:var(--accent);color:#fff}
 .dbtn-confirm:active{opacity:.85}
@@ -301,7 +306,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <div class="abt-body">
       <div class="abt-icon">📊</div>
       <div class="abt-name">飞书记账</div>
-      <div class="abt-ver" id="abt-ver">v1.2.1</div>
+      <div class="abt-ver" id="abt-ver">v1.3.0</div>
       <div class="abt-desc">个人记账仪表盘。通过 AI 智能助手完成自然语言记账，数据存储于飞书多维表格，支持图表可视化分析。</div>
       <div class="abt-divider"></div>
       <div class="abt-info"><span class="abt-lbl">开发者</span><span class="abt-val">Naeem</span></div>
@@ -351,7 +356,7 @@ var enabledIncCats=[];
 var isTotalMode=false;
 var detailPage=0;
 var GITHUB_REPO='NaeemTC/feishu-accounting-skill';
-var APP_VERSION='1.2.3';
+var APP_VERSION='1.3.0';
 var PAGE_SIZE=15;
 var pieChart=null,incPieChart=null,barChart=null,lineChart=null,hbarChart=null;
 var cachedToken='',cachedTokenExp=0;
@@ -370,6 +375,11 @@ function applyTheme(theme){
   if(barChart){barChart.dispose();barChart=null}
   if(lineChart){lineChart.dispose();lineChart=null}
   render();
+  // 图表淡入
+  ['c-pie','c-inc-pie','c-hbar','c-bar','c-line'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el&&!el.parentNode.classList.contains('hidden')){el.classList.add('chart-fade');setTimeout(function(){el.classList.remove('chart-fade')},300)}
+  });
 }
 
 // ═══ 本地存储 ═══
@@ -661,7 +671,7 @@ function renderLine(month){
   var days=Object.keys(dayMap).sort();
   if(!days.length){
     lineChart.clear();
-    lineChart.setOption({title:{text:'暂无日趋势数据',left:'center',top:'center',textStyle:{color:'#666',fontSize:13}}});
+    lineChart.setOption({title:{text:'暂无日趋势数据',left:'center',top:'center',textStyle:{color:CUR_THEME.axisLabel,fontSize:13}}});
     return;
   }
   var optL={
@@ -730,7 +740,7 @@ function renderDetails(month){
     }
     html+='<div class="di"><div class="di-l"><div class="di-date">'+dateStr+'</div><div class="di-txt">'+desc+'</div></div><div class="di-r"><span class="di-cat">'+cat+'</span><span class="di-amt">¥'+amt.toFixed(2)+'</span></div></div>';
   }
-  document.getElementById('detail-list').innerHTML=html||'<div style="padding:20px;text-align:center;color:#666;font-size:13px">暂无明细记录</div>';
+  document.getElementById('detail-list').innerHTML=html||'<div style="padding:20px;text-align:center;color:var(--dim);font-size:13px">暂无明细记录</div>';
   document.getElementById('pg-info').textContent=total>0?'第 '+(detailPage+1)+'/'+pages+' 页 · 共 '+total+' 条':'';
   document.getElementById('pg-prev').disabled=detailPage<=0;
   document.getElementById('pg-next').disabled=detailPage>=pages-1;
@@ -804,6 +814,8 @@ function showApp(){
   document.getElementById('error').classList.add('hidden');
   document.getElementById('login').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
+  document.getElementById('app').classList.add('fade-in');
+  setTimeout(function(){document.getElementById('app').classList.remove('fade-in')},350);
 }
 
 // ═══ 登录表单提交 ═══
@@ -918,12 +930,16 @@ document.getElementById('sett-inc-toggle').addEventListener('change',function(){
   if(hbarChart){hbarChart.dispose();hbarChart=null}
   render();
 });
-document.getElementById('sett-overlay').addEventListener('click',function(e){});
+document.getElementById('sett-overlay').addEventListener('click',function(e){
+  if(e.target===this)hideSett();
+});
 document.getElementById('sett-cat').addEventListener('click',function(){showCat()});
 document.getElementById('cat-close').addEventListener('click',function(){hideCat(renderCatSettings)});
 document.getElementById('tab-exp').addEventListener('click',function(){if(catTabActive!=='exp')switchCatTab('exp')});
 document.getElementById('tab-inc').addEventListener('click',function(){if(!showIncomePie)return;if(catTabActive!=='inc')switchCatTab('inc')});
-document.getElementById('cat-overlay').addEventListener('click',function(e){});
+document.getElementById('cat-overlay').addEventListener('click',function(e){
+  if(e.target===this)hideCat(renderCatSettings);
+});
 // ═══ 检查更新 ═══
 function showUpd(){document.body.classList.add('lock-scroll');document.getElementById('upd-overlay').classList.remove('hidden')}
 function hideUpd(){closeOverlay('upd-overlay')}
@@ -1006,7 +1022,9 @@ document.getElementById('sett-abt').addEventListener('click',function(){
   showAbout();
 });
 document.getElementById('abt-close').addEventListener('click',hideAbout);
-document.getElementById('abt-overlay').addEventListener('click',function(e){});
+document.getElementById('abt-overlay').addEventListener('click',function(e){
+  if(e.target===this)hideAbout();
+});
 function init(){
   loadConfig();
   applyTheme(activeTheme);
