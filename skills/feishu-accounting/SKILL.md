@@ -64,7 +64,7 @@ python3 scripts/apply_permissions.py \
 >
 > 🔗 `https://open.feishu.cn/app/{appId}/auth?q=base:app:read,base:app:update,...&op_from=openapi&token_type=tenant`
 >
-> 点击后 → 页面会列出所有需要的 base 权限 → 点击 **「确认开通权限」** → 完成。
+> 点击后 → 页面会列出所有需要的 base 权限 → 全选后点击 **「确认开通权限」** → 完成。
 
 **然后 AI 调用** `scopes/apply` API 提交管理员审批申请。
 
