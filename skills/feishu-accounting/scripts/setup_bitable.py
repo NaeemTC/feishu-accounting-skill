@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-飞书记账系统搭建脚本
+飞书记账系统搭建脚本（单表版）
 一站式完成：创建多维表格、建表、建字段、加选项。
-无需 feishu-cli，直接调用飞书 base/v3 API。
+仅创建一张「明细表」同时记录支出和收入，通过「类型」字段区分。
 
 用法：
     python3 setup_bitable.py --app-id cli_xxx --app-secret xxx
@@ -14,7 +14,6 @@ import sys
 import time
 import urllib.request
 import urllib.error
-
 
 FEISHU_HOST = "https://open.feishu.cn"
 
@@ -105,12 +104,12 @@ def update_field_options(token: str, base_token: str, table_id: str,
 
 
 def main():
-    parser = argparse.ArgumentParser(description="飞书记账系统搭建脚本")
+    parser = argparse.ArgumentParser(description="飞书记账系统搭建脚本（单表版）")
     parser.add_argument("--app-id", required=True, help="飞书应用 App ID")
     parser.add_argument("--app-secret", required=True, help="飞书应用 App Secret")
     args = parser.parse_args()
 
-    print("🚀 开始搭建飞书记账系统...")
+    print("🚀 开始搭建飞书记账系统（单表版）...")
 
     # Step 1: 获取 Tenant Token
     token = get_tenant_token(args.app_id, args.app_secret)
@@ -119,38 +118,38 @@ def main():
     # Step 2: 创建多维表格
     base_token = create_bitable(token)
 
-    # Step 3: 创建两个数据表
-    detail_table_id = create_table(token, base_token, "明细表")
-    summary_table_id = create_table(token, base_token, "汇总表")
+    # Step 3: 创建一张数据表（明细表），同时记录支出和收入
+    table_id = create_table(token, base_token, "明细表")
 
-    # Step 4: 为明细表创建字段
-    fld_text = create_field(token, base_token, detail_table_id, "文本", "text")
-    fld_month = create_field(token, base_token, detail_table_id, "月份", "text")
-    fld_amount = create_field(token, base_token, detail_table_id, "金额", "number")
-    fld_category = create_field(token, base_token, detail_table_id, "分类", "single_select")
-    update_field_options(token, base_token, detail_table_id, fld_category, "分类", [
+    # Step 4: 创建字段
+    # 文本 — 格式：{日期} {时间}{备注}
+    create_field(token, base_token, table_id, "文本", "text")
+    # 月份 — 格式：YYYY-MM
+    create_field(token, base_token, table_id, "月份", "text")
+    # 金额
+    create_field(token, base_token, table_id, "金额", "number")
+    # 分类（支出+收入所有选项）
+    fld_category = create_field(token, base_token, table_id, "分类", "single_select")
+    update_field_options(token, base_token, table_id, fld_category, "分类", [
+        # 支出分类（13个）
         {"name": "餐饮"}, {"name": "购物"}, {"name": "交通"}, {"name": "娱乐"},
         {"name": "通讯"}, {"name": "生活"}, {"name": "医疗"}, {"name": "住房"},
         {"name": "教育"}, {"name": "服饰"}, {"name": "数码"}, {"name": "运动"},
         {"name": "宠物"}, {"name": "其它"},
+        # 收入分类（5个）
+        {"name": "工资"}, {"name": "奖金"}, {"name": "兼职"}, {"name": "投资"},
     ])
-
-    # Step 5: 为汇总表创建字段
-    create_field(token, base_token, summary_table_id, "编号", "text")
-    create_field(token, base_token, summary_table_id, "描述", "text")
-    create_field(token, base_token, summary_table_id, "周期", "text")
-    fld_summary_category = create_field(token, base_token, summary_table_id, "分类", "single_select")
-    update_field_options(token, base_token, summary_table_id, fld_summary_category, "分类", [
+    # 类型（支出/收入）
+    fld_type = create_field(token, base_token, table_id, "类型", "single_select")
+    update_field_options(token, base_token, table_id, fld_type, "类型", [
         {"name": "支出"}, {"name": "收入"},
     ])
-    create_field(token, base_token, summary_table_id, "金额", "number")
 
     print("\n🎉 搭建完成！请保存以下凭证：")
     print(f"\n📋 App ID: {args.app_id}")
     print(f"📋 App Secret: {args.app_secret}")
     print(f"📋 Base Token: {base_token}")
-    print(f"📋 明细表 Table ID: {detail_table_id}")
-    print(f"📋 汇总表 Table ID: {summary_table_id}")
+    print(f"📋 明细表 Table ID: {table_id}")
     print(f"\n📊 多维表格链接: https://bytedance.feishu.cn/base/{base_token}")
 
     # 输出 JSON 供 AI 解析
@@ -159,8 +158,7 @@ def main():
         "app_id": args.app_id,
         "app_secret": args.app_secret,
         "base_token": base_token,
-        "detail_table_id": detail_table_id,
-        "summary_table_id": summary_table_id,
+        "table_id": table_id,
     }, ensure_ascii=False))
     print("---JSON_OUTPUT_END---")
 

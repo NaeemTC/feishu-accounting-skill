@@ -1,7 +1,7 @@
 ---
 name: feishu-accounting
 description: 飞书多维表格记账系统完整技能包。包含两步：1）运行 feishu-accounting-setup 引导用户完成飞书应用创建、多维表格搭建、凭证获取；2）使用 record_bill.py 进行日常记账（支持本地存储 + 飞书多维表格同步）。**同步使用永久有效的 Tenant Token，不再有 7 天过期问题。同步规则：支出写明细表+汇总表，收入只写汇总表（明细表仅用于 App 仪表盘展示消费明细）。**
-version: 1.3.0
+version: 1.4.0
 author: Naeem
 homepage: https://github.com/NaeemTC/feishu-accounting-skill
 tags: [feishu, bitable, accounting, setup, permissions]
@@ -70,7 +70,9 @@ python3 scripts/apply_permissions.py \
 
 ---
 
-**用户只需 1 步：** 点链接 → 确认开通所有权限 → 完成 ✅（无需发版，即时生效）
+**用户只需 2 步：**
+1️⃣  点链接 → 确认开通所有权限
+2️⃣  如果是第一次发布该应用，去 版本管理与发布 → 创建版本 → 填写版本号 → 申请发布 → 确认发布（后续追加权限无需再发版）
 
 ### Step 3：一键搭建多维表格
 
@@ -246,7 +248,9 @@ feishu-accounting/
 │   ├── cleanup_bitable.py     # 清空多维表格数据（重置/测试用）
 │   └── apply_permissions.py   # 一键权限申请——生成授权链接 + 调 scopes/apply
 └── references/
-    └── categories.md          # 分类关键词参考
+    └── categories.md                # 分类关键词参考
+    └── feishu-base-api-pitfalls.md   # base/v3 API 踩坑记录（分页/字段/格式）
+    └── feishu-permissions-api.md     # 飞书权限一键授权 API 模式
 ```
 
 ## 环境变量
@@ -270,23 +274,12 @@ feishu-accounting/
 | 建表时 HTTP 400 Bad Request | 缺 `base:table:create` 权限 | 在开放平台单独开通此权限并重新发版 |
 | 飞书字段 index 写反，写入后数据全 null | 金额写成 index=4、分类写成 index=2，字段顺序和实际不匹配 | 写字段前用 Tenant Token 调 `GET .../fields` 确认字段顺序，不要靠记忆 |
 | `sync_to_feishu()` 漏传某些字段 | 只同步了月份/金额/分类，`文本` 和 `单选` 字段未传入。飞书 API 返回 200 但这些字段全 null | 新增飞书字段后，`sync_to_feishu()` 的 config 和函数签名必须同步更新 |
-| Tenant Token 下 `page_size=100` 实际只返回 20 条 | 飞书 API 对 Tenant Token 有分页限制，`page_token` 返回 null | 翻页用 `offset` 参数：第 1 页不带 offset，第 2 页 `offset=20`，第 3 页 `offset=40` |
+| Tenant Token 下 `page_size=100` 实际只返回 ~20 条 | 飞书 API 对 Tenant Token 有分页限制，`page_token` 返回 null | 翻页用 `offset += len(records)` 动态累加（而非固定步长）。详见 `references/feishu-base-api-pitfalls.md` |
 | 用 `text.includes('-')` 判断有效记录，漏掉了有效数据 | 明细表有些记录的 `文本` 字段为 null，但金额和分类有效。`text.includes('-')` 会把这些记录全过滤掉 | 判断标准：amount 非 null 且非 0 即可进入聚合，不管 text 是不是 null |
 | `record_bill.py` 只写明细表，汇总表数据缺失 | 汇总表是仪表盘收支数据来源之一，漏写会导致统计数据不完整 | 每次 `add_record()` 必须同时调用 `sync_to_feishu()` 写明细表 + `sync_summary_to_feishu()` 写汇总表 |
+| `.env` 中 FEISHU_APP_ID 没生效，仍用了父 shell 的旧值 | `os.environ.setdefault()` 不覆盖已有变量 | `.env` 加载改用直接赋值 `os.environ[k] = v`。详见 `references/feishu-base-api-pitfalls.md` |
 
 ---
 
-## 飞书文本字段格式（与仪表盘 app 关联）
 
-`record_bill.py` 写入飞书的文本格式为：
 
-```
-{YYYY-MM-DD} {HH:mm}{备注}
-例如：2026-05-15 13:11停车费
-```
-
-仪表盘 app 解析规则：
-- 有时间戳的记录：`(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})` → 提取日期 + 时间
-- 无时间戳的旧记录：`(\d{4}-\d{2}-\d{2})` → 仅提取日期（兜底）
-
-> ⚠️ 如需修改 `record_bill.py` 的文本写入格式，请同步确认仪表盘 app 的正则解析逻辑能否兼容新旧两种格式。

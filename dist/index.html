@@ -176,11 +176,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <input type="text" id="f-detail" placeholder="tblxxxxxxxxxxxx" autocomplete="off">
       <p class="hint">记账明细所在的多维表格 ID</p>
     </div>
-    <div class="f-row">
-      <label>汇总表 ID</label>
-      <input type="text" id="f-summary" placeholder="tblxxxxxxxxxxxx" autocomplete="off">
-      <p class="hint">月度收入/支出汇总所在的多维表格 ID</p>
-    </div>
     <button class="lbtn" id="btn-login">连接飞书</button>
   </div>
 </div>
@@ -308,10 +303,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 'use strict';
 
 var API='https://open.feishu.cn/open-apis';
-var APP_ID='',APP_SECRET='',BASE='',DETAIL_TABLE='',SUMMARY_TABLE='';
+var APP_ID='',APP_SECRET='',BASE='',DETAIL_TABLE='';
 
-var FI={text:0,month:1,amount:2,category:3};
-var SI={no:0,desc:1,month:2,type:3,amount:4};
+var FI={text:0,month:1,amount:2,category:3,type:4};
 
 var COLORS={餐饮:'#ff6b6b',购物:'#4dabf7',交通:'#ffa94d',娱乐:'#9775fa',通讯:'#69db7c',生活:'#ffd43b',医疗:'#ff8787',住房:'#b197fc',教育:'#74c0fc',服饰:'#f06595',数码:'#38d9a9',运动:'#20c997',宠物:'#e599f7',其它:'#868e96',其他:'#868e96',收入:'#00c853'};
 var DEFAULT_CATS=['餐饮','购物','交通','娱乐','通讯'];
@@ -321,7 +315,6 @@ var activeTheme=localStorage.getItem('fa_theme')||'light';
 var CUR_THEME=THEMES[activeTheme];
 var now=new Date();
 var curMonth=now.getFullYear()+'-'+pad2(now.getMonth()+1);
-var summaryRecords=[];
 var detailRecords=[];
 var enabledCats=[];
 var isTotalMode=false;
@@ -353,7 +346,6 @@ function loadConfig(){
   APP_SECRET=localStorage.getItem('fa_secret')||'';
   BASE=localStorage.getItem('fa_base')||'';
   DETAIL_TABLE=localStorage.getItem('fa_detail')||'';
-  SUMMARY_TABLE=localStorage.getItem('fa_summary')||'';
   var saved=localStorage.getItem('fa_cats');
   if(saved){try{enabledCats=JSON.parse(saved);if(!enabledCats.length)throw 1}catch(e){enabledCats=DEFAULT_CATS.slice()}}
   else enabledCats=DEFAULT_CATS.slice();
@@ -363,7 +355,6 @@ function saveConfig(){
   localStorage.setItem('fa_secret',APP_SECRET);
   localStorage.setItem('fa_base',BASE);
   localStorage.setItem('fa_detail',DETAIL_TABLE);
-  localStorage.setItem('fa_summary',SUMMARY_TABLE);
 }
 
 // ═══ HTTP：原生插件优先，浏览器fetch兜底 ═══
@@ -432,15 +423,15 @@ function fetchAll(token,tableId){
   return page();
 }
 
-// ═══ 汇总表 ═══
+// ═══ 月度汇总 ═══
 function getMonthSummary(month){
   var inc=0,exp=0;
-  for(var i=0;i<summaryRecords.length;i++){
-    var r=summaryRecords[i];
-    if(month&&r[SI.month]!==month)continue;
-    var type=r[SI.type]||'';
+  for(var i=0;i<detailRecords.length;i++){
+    var r=detailRecords[i];
+    if(month&&r[FI.month]!==month)continue;
+    var type=r[FI.type]||'';
     if(Array.isArray(type))type=type[0]||'';
-    var amt=parseFloat(r[SI.amount])||0;
+    var amt=parseFloat(r[FI.amount])||0;
     if(type==='支出')exp+=amt;
     else if(type==='收入')inc+=amt;
   }
@@ -492,7 +483,6 @@ function getDashRecords(month){
 // ═══ 月份列表 ═══
 function getMonthList(){
   var ms={};
-  for(var i=0;i<summaryRecords.length;i++){var m=summaryRecords[i][SI.month];if(m)ms[m]=1;}
   for(var i=0;i<detailRecords.length;i++){var m=detailRecords[i][FI.month];if(m)ms[m]=1;}
   return Object.keys(ms).sort().reverse();
 }
@@ -708,7 +698,6 @@ function showLogin(){
   document.getElementById('f-secret').value=APP_SECRET;
   document.getElementById('f-base').value=BASE;
   document.getElementById('f-detail').value=DETAIL_TABLE;
-  document.getElementById('f-summary').value=SUMMARY_TABLE;
 }
 function showApp(){
   document.getElementById('loading').classList.add('hidden');
@@ -723,8 +712,7 @@ document.getElementById('btn-login').addEventListener('click',function(){
   APP_SECRET=document.getElementById('f-secret').value.trim();
   BASE=document.getElementById('f-base').value.trim();
   DETAIL_TABLE=document.getElementById('f-detail').value.trim();
-  SUMMARY_TABLE=document.getElementById('f-summary').value.trim();
-  if(!APP_ID||!APP_SECRET||!BASE||!DETAIL_TABLE||!SUMMARY_TABLE){
+  if(!APP_ID||!APP_SECRET||!BASE||!DETAIL_TABLE){
     alert('请填写所有字段');
     return;
   }
@@ -877,20 +865,16 @@ function init(){
   loadConfig();
   applyTheme(activeTheme);
   // 检查是否已有完整凭证
-  if(!APP_ID||!APP_SECRET||!BASE||!DETAIL_TABLE||!SUMMARY_TABLE){
+  if(!APP_ID||!APP_SECRET||!BASE||!DETAIL_TABLE){
     showLogin();
     return;
   }
   showLoading('正在获取令牌...');
   getToken().then(function(token){
     showLoading('正在拉取全部数据...');
-    return Promise.all([
-      fetchAll(token,DETAIL_TABLE),
-      fetchAll(token,SUMMARY_TABLE)
-    ]);
+    return fetchAll(token,DETAIL_TABLE);
   }).then(function(r){
-    detailRecords=r[0]||[];
-    summaryRecords=r[1]||[];
+    detailRecords=r||[];
     showApp();
     render();
   }).catch(function(e){
@@ -946,13 +930,9 @@ function doRefresh(){
   showLoading('正在重新拉取数据...');
   getToken().then(function(token){
     showLoading('正在拉取全部数据...');
-    return Promise.all([
-      fetchAll(token,DETAIL_TABLE),
-      fetchAll(token,SUMMARY_TABLE)
-    ]);
+    return fetchAll(token,DETAIL_TABLE);
   }).then(function(r){
-    detailRecords=r[0]||[];
-    summaryRecords=r[1]||[];
+    detailRecords=r||[];
     detailPage=0;
     showApp();
     render();
