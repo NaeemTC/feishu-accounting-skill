@@ -1,7 +1,7 @@
 ---
 name: feishu-accounting
-description: 飞书多维表格记账系统完整技能包。包含两步：1）运行 feishu-accounting-setup 引导用户完成飞书应用创建、多维表格搭建、凭证获取；2）使用 record_bill.py 进行日常记账（支持本地存储 + 飞书多维表格同步）。**同步规则：支出写明细表+汇总表，收入只写汇总表（明细表仅用于 App 仪表盘展示消费明细）。**
-version: 1.2.4
+description: 飞书多维表格记账系统完整技能包。包含两步：1）运行 feishu-accounting-setup 引导用户完成飞书应用创建、多维表格搭建、凭证获取；2）使用 record_bill.py 进行日常记账（支持本地存储 + 飞书多维表格同步）。**同步使用永久有效的 Tenant Token，不再有 7 天过期问题。同步规则：支出写明细表+汇总表，收入只写汇总表（明细表仅用于 App 仪表盘展示消费明细）。**
+version: 1.2.5
 author: Naeem
 homepage: https://github.com/NaeemTC/feishu-accounting-skill
 tags: [feishu, bitable, accounting, setup]
@@ -109,15 +109,7 @@ base_url: "https://open.feishu.cn"
 debug: false
 ```
 
-### Step 5：认证
-
-```bash
-feishu-cli auth login --domain bitable --recommend --json --no-wait
-```
-
-**把输出中的 `verification_url` 发送给用户，让他们在浏览器打开链接，点击「授权」即可完成，无需扫码。**
-
-### Step 6：创建多维表格
+### Step 5：创建多维表格
 
 ```bash
 feishu-cli bitable create --name "个人记账本"
@@ -125,7 +117,7 @@ feishu-cli bitable create --name "个人记账本"
 
 **记录返回的 base_token**（格式如 `your_base_token_here`）。
 
-### Step 7：创建两个表
+### Step 6：创建两个表
 
 ```bash
 BASE_TOKEN="上面获取的base_token"
@@ -139,7 +131,7 @@ feishu-cli bitable table create --base-token $BASE_TOKEN --name "汇总表"
 # 记录返回的 table_id（汇总表ID）
 ```
 
-### Step 8：创建字段
+### Step 7：创建字段
 
 ```bash
 BASE_TOKEN="你的base_token"
@@ -193,7 +185,7 @@ feishu-cli bitable field create --base-token $BASE_TOKEN --table-id $SUMMARY_TAB
 >   --config '{"field_name":"分类","type":"select","options":[{"name":"餐饮"},{"name":"购物"},{"name":"交通"},{"name":"娱乐"},{"name":"通讯"},{"name":"生活"},{"name":"医疗"},{"name":"住房"},{"name":"教育"},{"name":"服饰"},{"name":"数码"},{"name":"运动"},{"name":"宠物"},{"name":"其它"}]}'
 > ```
 
-### Step 9：输出凭证给用户
+### Step 8：输出凭证给用户
 
 **AI 必须将以下 5 个凭证填入实际值后发送给用户（App ID / App Secret 来自 Step 2 用户提供的值，Base Token / Table ID 来自 Step 6-7 创建的）：**
 
@@ -212,26 +204,31 @@ feishu-cli bitable field create --base-token $BASE_TOKEN --table-id $SUMMARY_TAB
 > 📊 **多维表格链接**：https://bytedance.feishu.cn/base/`你的Base_Token`
 > （浏览器打开就能直接看到你建的明细表和汇总表）
 
-### Step 10：配置凭证（让 record_bill.py 能用）
+### Step 9：配置凭证（让 record_bill.py 能用）
 
 **AI 执行**，在 skill 目录下创建 `.env` 文件（`record_bill.py` 启动时会自动加载）：
 
 ```bash
 # 在技能目录创建 .env（record_bill.py 会自动从同目录读取）
 cat > /path/to/feishu-accounting/.env << 'EOF'
-FEISHU_BASE_TOKEN=$BASE_TOKEN
-FEISHU_DETAIL_TABLE_ID=$DETAIL_TABLE_ID
-FEISHU_SUMMARY_TABLE_ID=$SUMMARY_TABLE_ID
+FEISHU_APP_ID=你的App_ID
+FEISHU_APP_SECRET=你的App_Secret
+FEISHU_BASE_TOKEN=你的Base_Token
+FEISHU_DETAIL_TABLE_ID=你的明细表ID
+FEISHU_SUMMARY_TABLE_ID=你的汇总表ID
 EOF
 ```
 
-或通过环境变量注入（适合临时调用）：
+### Step 10：把应用加入多维表格（重要！）
 
-```bash
-export FEISHU_BASE_TOKEN="你的base_token"
-export FEISHU_DETAIL_TABLE_ID="你的明细表ID"
-export FEISHU_SUMMARY_TABLE_ID="你的汇总表ID"
-```
+**⚠️ 必须执行，否则 Tenant Token 无法写入数据：**
+
+1. 打开多维表格：https://bytedance.feishu.cn/base/`你的Base_Token`
+2. 点右上角 **分享** → **添加成员**
+3. 搜索你的应用名称（创建飞书应用时填的名称）
+4. 权限选 **可编辑**，确认添加
+
+这样 Tenant Token 才有写权限，否则报 `91403 you don't have permission`。
 
 ### Step 11：询问用户是否安装 App（仪表盘）
 
@@ -358,9 +355,13 @@ feishu-accounting/
 
 | 变量名 | 说明 | 示例 |
 |--------|------|------|
+| `FEISHU_APP_ID` | 飞书应用 App ID（必填） | `cli_xxxxxxxxxxxxxxxx` |
+| `FEISHU_APP_SECRET` | 飞书应用 App Secret（必填） | `xxxxxxxxxxxxxxxxxx` |
 | `FEISHU_BASE_TOKEN` | 多维表格 Base Token | `your_base_token_here` |
 | `FEISHU_DETAIL_TABLE_ID` | 明细表 ID | `tblxxxxxxxxxxxxxxxx` |
 | `FEISHU_SUMMARY_TABLE_ID` | 汇总表 ID | `tblyyyyyyyyyyyyyyyy` |
+
+> **无需 User Access Token**：record_bill.py 使用永久有效的 Tenant Token（自动从 App ID + Secret 获取），不再有 7 天过期问题。
 
 ---
 

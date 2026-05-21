@@ -21,8 +21,9 @@ import argparse
 import json
 import os
 import re
-import subprocess
 import sys
+import urllib.request
+import urllib.error
 from datetime import date, datetime
 from pathlib import Path
 
@@ -58,6 +59,14 @@ FEISHU_DETAIL_TABLE_ID = os.environ.get(
 FEISHU_SUMMARY_TABLE_ID = os.environ.get(
     "FEISHU_SUMMARY_TABLE_ID",
     ""  # ❗ 新安装必须设置环境变量，默认值为空字符串
+)
+FEISHU_APP_ID = os.environ.get(
+    "FEISHU_APP_ID",
+    ""  # Tenant Token 所需 App ID
+)
+FEISHU_APP_SECRET = os.environ.get(
+    "FEISHU_APP_SECRET",
+    ""  # Tenant Token 所需 App Secret
 )
 
 # 本地分类名 → 飞书选项名映射（飞书预设14个选项，新分类同名匹配）
@@ -117,6 +126,29 @@ def _check_feishu_config() -> None:
             "\n"
             "或在 .env 文件中配置后 source，再运行本脚本。"
         )
+    if not FEISHU_APP_ID or not FEISHU_APP_SECRET:
+        raise RuntimeError(
+            "飞书 App 凭证未配置！请设置以下环境变量：\n"
+            "  FEISHU_APP_ID     （App ID）\n"
+            "  FEISHU_APP_SECRET （App Secret）\n"
+            "\n"
+            "或在 .env 文件中配置后 source，再运行本脚本。"
+        )
+
+
+def _get_tenant_token() -> str:
+    """获取飞书 Tenant Access Token（永久有效，无需刷新）"""
+    url = "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal"
+    data = json.dumps({
+        "app_id": FEISHU_APP_ID,
+        "app_secret": FEISHU_APP_SECRET,
+    }).encode("utf-8")
+    req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        result = json.loads(resp.read())
+    if result.get("code") != 0:
+        raise RuntimeError(f"获取 Tenant Token 失败: {result}")
+    return result["tenant_access_token"]
 
 
 def sync_summary_to_feishu(amount: float, bill_type: str, date_str: str) -> dict:
@@ -129,36 +161,37 @@ def sync_summary_to_feishu(amount: float, bill_type: str, date_str: str) -> dict
     month = date_str[:7]  # "2026-05"
     type_label = "支出" if bill_type == "expense" else "收入"
 
-    config = {
-        "fields": {
-            "分类": type_label,
-            "金额": amount,
-            "周期": month,
-        }
+    token = _get_tenant_token()
+    url = (
+        f"https://open.feishu.cn/open-apis/base/v3/bases/{FEISHU_BASE_TOKEN}"
+        f"/tables/{FEISHU_SUMMARY_TABLE_ID}/records"
+    )
+    payload = {
+        "分类": type_label,
+        "金额": amount,
+        "周期": month,
     }
-
-    cmd = [
-        "feishu-cli", "bitable", "record", "upsert",
-        "--base-token", FEISHU_BASE_TOKEN,
-        "--table-id", FEISHU_SUMMARY_TABLE_ID,
-        "--config", json.dumps(config),
-    ]
-
+    data = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(
+        url, data=data,
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
     try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=15,
-        )
-        if result.returncode == 0:
-            return {"success": True}
-        else:
-            return {"success": False, "error": result.stderr.strip()}
-    except subprocess.TimeoutExpired:
-        return {"success": False, "error": "feishu-cli 调用超时"}
-    except FileNotFoundError:
-        return {"success": False, "error": "feishu-cli 未找到，请确认已安装并在 PATH 中"}
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            result = json.loads(resp.read())
+            if result.get("code") == 0:
+                return {"success": True}
+            else:
+                return {"success": False, "error": f"code={result.get('code')}, msg={result.get('msg')}"}
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8")
+        return {"success": False, "error": f"HTTP {e.code}: {body}"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
 
 
 def sync_to_feishu(amount: float, bill_type: str, category: str,
@@ -173,37 +206,38 @@ def sync_to_feishu(amount: float, bill_type: str, category: str,
 
     feishu_category = FEISHU_CATEGORY_MAP.get(category, "其它")
 
-    config = {
-        "fields": {
-            "文本": f"{date_str} {get_time_str()}{note}",
-            "月份": month,
-            "分类": feishu_category,
-            "金额": amount,
-        }
+    token = _get_tenant_token()
+    url = (
+        f"https://open.feishu.cn/open-apis/base/v3/bases/{FEISHU_BASE_TOKEN}"
+        f"/tables/{FEISHU_DETAIL_TABLE_ID}/records"
+    )
+    payload = {
+        "月份": month,
+        "分类": feishu_category,
+        "金额": amount,
+        "文本": f"{date_str} {get_time_str()}{note}",
     }
-
-    cmd = [
-        "feishu-cli", "bitable", "record", "upsert",
-        "--base-token", FEISHU_BASE_TOKEN,
-        "--table-id", FEISHU_DETAIL_TABLE_ID,
-        "--config", json.dumps(config),
-    ]
-
+    data = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(
+        url, data=data,
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
     try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=15,
-        )
-        if result.returncode == 0:
-            return {"success": True}
-        else:
-            return {"success": False, "error": result.stderr.strip()}
-    except subprocess.TimeoutExpired:
-        return {"success": False, "error": "feishu-cli 调用超时"}
-    except FileNotFoundError:
-        return {"success": False, "error": "feishu-cli 未找到，请确认已安装并在 PATH 中"}
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            result = json.loads(resp.read())
+            if result.get("code") == 0:
+                return {"success": True}
+            else:
+                return {"success": False, "error": f"code={result.get('code')}, msg={result.get('msg')}"}
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8")
+        return {"success": False, "error": f"HTTP {e.code}: {body}"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
 
 
 # ── 读取现有账单 ───────────────────────────────────────────────────────────────
