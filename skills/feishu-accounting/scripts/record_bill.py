@@ -375,6 +375,17 @@ def _delete_from_feishu(record: dict, date_str: str) -> dict:
         base = FEISHU_BASE_TOKEN
         tbl = FEISHU_DETAIL_TABLE_ID
 
+        # 获取字段映射：字段名 → 索引
+        url_fields = (f"https://open.feishu.cn/open-apis/base/v3/bases/{base}"
+                      f"/tables/{tbl}/fields")
+        req_fields = urllib.request.Request(url_fields, headers={"Authorization": f"Bearer {token}"})
+        with urllib.request.urlopen(req_fields, timeout=15) as resp:
+            fields_data = json.loads(resp.read())
+
+        field_map = {}
+        for f in fields_data.get("data", {}).get("fields", []):
+            field_map[f["name"]] = f["id"]
+
         # 翻页搜索匹配记录
         offset = 0
         while True:
@@ -390,10 +401,22 @@ def _delete_from_feishu(record: dict, date_str: str) -> dict:
             if not records:
                 break
 
+            # 找出文本和金额字段的索引
+            text_idx = None
+            amount_idx = None
+            for i, fid in enumerate(field_ids):
+                if fid == field_map.get("文本", ""):
+                    text_idx = i
+                elif fid == field_map.get("金额", ""):
+                    amount_idx = i
+
+            if text_idx is None or amount_idx is None:
+                return {"success": False, "error": "飞书字段映射失败"}
+
             for i, rec in enumerate(records):
-                if len(rec) >= 3:
-                    text_val = str(rec[0]) if rec[0] else ""
-                    amount_val = rec[2] if rec[2] else 0
+                if len(rec) > max(text_idx, amount_idx):
+                    text_val = str(rec[text_idx]) if rec[text_idx] else ""
+                    amount_val = rec[amount_idx] if rec[amount_idx] else 0
                     if text_val == target_text and abs(float(amount_val) - target_amount) < 0.01:
                         rid = record_ids[i]
                         del_url = (f"https://open.feishu.cn/open-apis/base/v3/bases/{base}"
