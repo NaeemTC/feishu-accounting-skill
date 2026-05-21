@@ -240,7 +240,8 @@ feishu-accounting/
 ├── SKILL.md                   # 本文件
 ├── scripts/
 │   ├── record_bill.py         # 记账核心脚本
-│   └── setup_bitable.py       # 一键搭建多维表格脚本
+│   ├── setup_bitable.py       # 一键搭建多维表格脚本
+│   └── cleanup_bitable.py     # 清空多维表格数据（重置/测试用）
 └── references/
     └── categories.md          # 分类关键词参考
 ```
