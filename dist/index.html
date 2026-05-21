@@ -32,15 +32,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .f-row input{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-size:14px;outline:none;transition:border-color .2s,background .35s,color .35s}
 .f-row input:focus{border-color:var(--accent)}
 .f-row .hint{font-size:10px;color:var(--dim);margin-top:3px}
-.lbtn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:12px;font-size:15px;font-weight:600;cursor:pointer;margin-top:6px;transition:transform .15s,opacity .15s}
-.lbtn:active{transform:scale(.97)}
+.lbtn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:12px;font-size:15px;font-weight:600;cursor:pointer;margin-top:6px}
+.lbtn:active{opacity:.85}
 /* ─── 顶部导航 ─── */
 .header{display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;box-shadow:0 2px 12px var(--shadow);transition:background .35s,border .35s,box-shadow .35s}
 .title-group{display:flex;align-items:center;gap:6px;flex:1;justify-content:center}
 .month-sel{display:flex;align-items:center;gap:6px;flex:1;justify-content:center}
-.mbtn{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s,border .2s,color .2s,transform .2s,box-shadow .2s,opacity .2s}
+.mbtn{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s,border .2s,color .2s,transform .2s,box-shadow .2s}
 .mbtn:active{background:var(--border);transform:scale(.88);transition:background .1s,transform .1s,box-shadow .1s}
-.mbtn:disabled{opacity:.35;cursor:not-allowed;transform:none!important}
 .mbtn.hd{width:30px;height:30px;font-size:14px}
 .mbtn.hd.s{font-size:16px;font-weight:700}
 .mbtn.hd.rf{font-size:17px}
@@ -99,9 +98,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .overlay.closing .s-dialog,.overlay.closing .sc-dialog,.overlay.closing .dialog,.overlay.closing .abt-dialog{animation:dialogOut .15s ease-in forwards}
 @keyframes dialogIn{from{opacity:0;transform:scale(.92) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
 @keyframes dialogOut{from{opacity:1;transform:scale(1) translateY(0)}to{opacity:0;transform:scale(.92) translateY(8px)}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.fade-in{animation:fadeUp .35s ease-out}
-.chart-fade{animation:fadeUp .3s ease-out}
 .mlabel{font-size:13px;font-weight:600;min-width:66px;text-align:center;transition:color .35s}
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 12px 8px}
 .card{background:var(--card);border-radius:var(--r);padding:14px 12px;border:1px solid var(--border);display:flex;flex-direction:column;gap:5px;box-shadow:0 4px 14px var(--shadow);transition:background .35s,border .35s,box-shadow .35s}
@@ -137,11 +133,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .dialog-msg{font-size:15px;font-weight:600;margin-bottom:4px;line-height:1.5}
 .dialog-sub{font-size:12px;color:var(--dim);font-weight:400}
 .dialog-btns{display:flex;gap:10px;justify-content:center;margin-top:18px}
-.dbtn{padding:9px 20px;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;min-width:80px;transition:transform .15s,background .2s,opacity .15s}
-.dbtn:active{transform:scale(.95)}
-.dbtn-cancel{background:var(--card2);color:var(--text);border:1px solid var(--border)}
+.dbtn{padding:9px 20px;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;min-width:80px}
+.dbtn-cancel{background:var(--card2);color:var(--text);border:1px solid var(--border);transition:background .2s}
 .dbtn-cancel:active{background:var(--border)}
 .dbtn-confirm{background:var(--accent);color:#fff}
+.dbtn-confirm:active{opacity:.85}
+/* ─── Toggle Switch ─── */
+.switch{position:relative;display:inline-block;width:36px;height:20px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--border);border-radius:20px;transition:.2s}
+.slider::before{content:'';position:absolute;height:16px;width:16px;left:2px;bottom:2px;background:#fff;border-radius:50%;transition:.2s}
+.switch input:checked+.slider{background:var(--accent)}
+.switch input:checked+.slider::before{transform:translateX(16px)}
+/* ─── 分类设置 Tabs ─── */
+.sc-tabs{display:flex;border-bottom:1px solid var(--border);transition:border-color .35s}
+.sc-tab{flex:1;padding:10px;font-size:12px;font-weight:600;background:none;border:none;color:var(--dim);cursor:pointer;transition:color .2s,border-color .2s,background .15s;border-bottom:2px solid transparent}
+.sc-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.sc-tab:active{background:var(--card2)}
+.sc-tab.disabled{opacity:.4;cursor:not-allowed}
+.sc-body{padding:6px 0}
 </style>
 </head>
 <body>
@@ -156,6 +166,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <h3>加载失败</h3>
   <p id="err-msg"></p>
   <pre id="err-detail"></pre>
+  <button class="btn" onclick="resetLogin()">重新配置</button>
   <button class="btn" onclick="location.reload()">重试</button>
 </div>
 
@@ -180,7 +191,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <input type="text" id="f-detail" placeholder="tblxxxxxxxxxxxx" autocomplete="off">
       <p class="hint">记账明细所在的多维表格 ID</p>
     </div>
-
     <button class="lbtn" id="btn-login">连接飞书</button>
   </div>
 </div>
@@ -206,6 +216,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
   <div class="charts">
     <div class="ch ch-pie"><h4>支出分类</h4><div class="box" id="c-pie"></div></div>
+    <div class="ch ch-pie hidden" id="c-pie-inc-wrap"><h4>收入分类</h4><div class="box" id="c-pie-inc"></div></div>
     <div class="ch ch-full"><h4>分类金额</h4><div class="box" id="c-hbar" style="height:220px"></div></div>
     <div class="ch"><h4>月度对比</h4><div class="box" id="c-bar"></div></div>
     <div class="ch"><h4>日支出趋势</h4><div class="box" id="c-line"></div></div>
@@ -231,6 +242,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <span class="s-row-lbl">📂 分类设置</span>
         <span class="s-row-arrow">›</span>
       </div>
+      <div class="s-row" id="sett-inc-pie">
+        <span class="s-row-lbl">📊 收入分类饼图</span>
+        <label class="switch"><input type="checkbox" id="sett-inc-toggle"><span class="slider"></span></label>
+      </div>
       <div class="s-row" id="sett-upd">
         <span class="s-row-lbl">⬆ 检查更新</span>
         <span class="s-upd-sub" id="sett-ver">v</span>
@@ -250,9 +265,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <h3>分类设置 <span class="hint">勾选想独立显示的分类</span></h3>
       <button class="s-close" id="cat-close">✕</button>
     </div>
-    <div class="sc-body" id="cat-body"></div>
+    <div class="sc-tabs">
+      <button class="sc-tab active" id="tab-exp">支出分类</button>
+      <button class="sc-tab" id="tab-inc">收入分类</button>
+    </div>
+    <div class="sc-body" id="cat-body-exp"></div>
+    <div class="sc-body hidden" id="cat-body-inc"></div>
     <div class="sc-foot">
-      <div class="sc-hint">💡 未勾选的分类将归入 <b>其他</b></div>
+      <div class="sc-hint" id="cat-hint-exp">💡 未勾选的分类将归入 <b>其他</b></div>
+      <div class="sc-hint hidden" id="cat-hint-inc">💡 收入分类在收入饼图关闭时不可设置</div>
     </div>
   </div>
 </div>
@@ -280,7 +301,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <div class="abt-body">
       <div class="abt-icon">📊</div>
       <div class="abt-name">飞书记账</div>
-      <div class="abt-ver" id="abt-ver">v1.3.0</div>
+      <div class="abt-ver" id="abt-ver">v1.2.1</div>
       <div class="abt-desc">个人记账仪表盘。通过 AI 智能助手完成自然语言记账，数据存储于飞书多维表格，支持图表可视化分析。</div>
       <div class="abt-divider"></div>
       <div class="abt-info"><span class="abt-lbl">开发者</span><span class="abt-val">Naeem</span></div>
@@ -313,8 +334,12 @@ var APP_ID='',APP_SECRET='',BASE='',DETAIL_TABLE='';
 var FI={text:0,month:1,amount:2,category:3,type:4};
 
 var COLORS={餐饮:'#ff6b6b',购物:'#4dabf7',交通:'#ffa94d',娱乐:'#9775fa',通讯:'#69db7c',生活:'#ffd43b',医疗:'#ff8787',住房:'#b197fc',教育:'#74c0fc',服饰:'#f06595',数码:'#38d9a9',运动:'#20c997',宠物:'#e599f7',其它:'#868e96',其他:'#868e96',收入:'#00c853'};
-var DEFAULT_CATS=['餐饮','购物','交通','娱乐','通讯'];
+var DEFAULT_CATS=ALL_CATS.slice();
 var ALL_CATS=['餐饮','购物','交通','娱乐','通讯','医疗','住房','教育','服饰','生活','数码','运动','宠物'];
+var INCOME_CATS=['工资','奖金','兼职','投资','其他'];
+var INC_COLORS={工资:'#00c853',奖金:'#ffd600',兼职:'#4facfe',投资:'#ff6b6b',其他:'#868e96'};
+var showIncomePie=false;
+var catTabActive='exp';
 var THEMES={dark:{tooltipBg:'#1a1a2e',tooltipBorder:'#2a2a4a',tooltipText:'#e0e0e0',axisLabel:'#888',splitLine:'#222',axisLine:'#2a2a4a',yLabel:'#ddd',barLabel:'#aaa',pieLabel:'#aaa',labelLine:'#555',itemBorder:'#0f0f1a'},light:{tooltipBg:'#ffffff',tooltipBorder:'#ddd6cc',tooltipText:'#3d3a36',axisLabel:'#9e9a95',splitLine:'#e8e2d8',axisLine:'#ddd6cc',yLabel:'#3d3a36',barLabel:'#9e9a95',pieLabel:'#7a7670',labelLine:'#ccc',itemBorder:'#fff'}};
 var activeTheme=localStorage.getItem('fa_theme')||'light';
 var CUR_THEME=THEMES[activeTheme];
@@ -322,12 +347,13 @@ var now=new Date();
 var curMonth=now.getFullYear()+'-'+pad2(now.getMonth()+1);
 var detailRecords=[];
 var enabledCats=[];
+var enabledIncCats=[];
 var isTotalMode=false;
 var detailPage=0;
 var GITHUB_REPO='NaeemTC/feishu-accounting-skill';
-var APP_VERSION='1.3.0';
+var APP_VERSION='1.2.3';
 var PAGE_SIZE=15;
-var pieChart=null,barChart=null,lineChart=null,hbarChart=null;
+var pieChart=null,incPieChart=null,barChart=null,lineChart=null,hbarChart=null;
 var cachedToken='',cachedTokenExp=0;
 
 function pad2(n){return n<10?'0'+n:''+n}
@@ -339,15 +365,11 @@ function applyTheme(theme){
   localStorage.setItem('fa_theme',theme);
   if(document.getElementById('app').classList.contains('hidden'))return;
   if(pieChart){pieChart.dispose();pieChart=null}
+  if(incPieChart){incPieChart.dispose();incPieChart=null}
   if(hbarChart){hbarChart.dispose();hbarChart=null}
   if(barChart){barChart.dispose();barChart=null}
   if(lineChart){lineChart.dispose();lineChart=null}
   render();
-  // 图表淡入
-  ['c-pie','c-hbar','c-bar','c-line'].forEach(function(id){
-    var el=document.getElementById(id);
-    if(el&&!el.parentNode.classList.contains('hidden')){el.classList.add('chart-fade');setTimeout(function(){el.classList.remove('chart-fade')},300)}
-  });
 }
 
 // ═══ 本地存储 ═══
@@ -359,6 +381,11 @@ function loadConfig(){
   var saved=localStorage.getItem('fa_cats');
   if(saved){try{enabledCats=JSON.parse(saved);if(!enabledCats.length)throw 1}catch(e){enabledCats=DEFAULT_CATS.slice()}}
   else enabledCats=DEFAULT_CATS.slice();
+  var sp=localStorage.getItem('fa_inc_pie');
+  showIncomePie=sp==='1';
+  var ic=localStorage.getItem('fa_inc_cats');
+  if(ic){try{enabledIncCats=JSON.parse(ic);if(!enabledIncCats.length)throw 1}catch(e){enabledIncCats=INCOME_CATS.slice()}}
+  else enabledIncCats=INCOME_CATS.slice();
 }
 function saveConfig(){
   localStorage.setItem('fa_appid',APP_ID);
@@ -433,22 +460,43 @@ function fetchAll(token,tableId){
   return page();
 }
 
-// ═══ 从明细表统计收支（单表，通过类型字段区分）═══
+// ═══ 月度汇总 ═══
 function getMonthSummary(month){
   var inc=0,exp=0;
   for(var i=0;i<detailRecords.length;i++){
     var r=detailRecords[i];
     if(month&&r[FI.month]!==month)continue;
-    var typeArr=r[FI.type];
-    var type=(typeArr&&typeArr[0])||'支出';
-    var amt=r[FI.amount]||0;
-    if(type==='收入')inc+=amt;
-    else exp+=amt;
+    var type=r[FI.type]||'';
+    if(Array.isArray(type))type=type[0]||'';
+    var amt=parseFloat(r[FI.amount])||0;
+    if(type==='支出')exp+=amt;
+    else if(type==='收入')inc+=amt;
   }
   return{income:inc,expense:exp};
 }
 
-// ═══ 明细表：分类汇总（未启用分类归入「其他」）═══
+// ═══ 明细表：收入分类汇总 ═══
+function incomeCatSummaryFromDetail(month){
+  var m={};
+  for(var i=0;i<detailRecords.length;i++){
+    var r=detailRecords[i];
+    if(month&&r[FI.month]!==month)continue;
+    var type=r[FI.type]||'';
+    if(Array.isArray(type))type=type[0]||'';
+    if(type!=='收入')continue;
+    var catArr=r[FI.category];
+    var cat=(catArr&&catArr[0])||'其它';
+    if(enabledIncCats.indexOf(cat)<0)cat='其他';
+    var amt=r[FI.amount]||0;
+    if(!amt)continue;
+    m[cat]=(m[cat]||0)+amt;
+  }
+  var out=[];
+  for(var c in m)out.push({name:c,amount:m[c],color:INC_COLORS[c]||'#868e96'});
+  out.sort(function(a,b){return b.amount-a.amount});
+  return out;
+}
+// ═══ 明细表：支出分类汇总（未启用分类归入「其他」）═══
 function catSummaryFromDetail(month){
   var m={};
   for(var i=0;i<detailRecords.length;i++){
@@ -613,7 +661,7 @@ function renderLine(month){
   var days=Object.keys(dayMap).sort();
   if(!days.length){
     lineChart.clear();
-    lineChart.setOption({title:{text:'暂无日趋势数据',left:'center',top:'center',textStyle:{color:CUR_THEME.axisLabel,fontSize:13}}});
+    lineChart.setOption({title:{text:'暂无日趋势数据',left:'center',top:'center',textStyle:{color:'#666',fontSize:13}}});
     return;
   }
   var optL={
@@ -629,6 +677,31 @@ function renderLine(month){
   lineChart.setOption(optL);
 }
 
+function renderIncomePie(cats){
+  var el=document.getElementById('c-pie-inc');
+  if(!el)return;
+  if(!incPieChart)incPieChart=echarts.init(el,null,{renderer:'svg'});
+  if(!cats.length){
+    incPieChart.clear();
+    incPieChart.setOption({title:{text:'暂无收入数据',left:'center',top:'center',textStyle:{color:CUR_THEME.axisLabel,fontSize:13}}});
+    return;
+  }
+  incPieChart.setOption({
+    backgroundColor:'transparent',
+    title:{show:false},
+    tooltip:{trigger:'item',formatter:function(p){return p.name+': ¥'+p.value.toFixed(2)+' ('+p.percent+'%)'},backgroundColor:CUR_THEME.tooltipBg,borderColor:CUR_THEME.tooltipBorder,textStyle:{color:CUR_THEME.tooltipText,fontSize:12}},
+    legend:{show:false},
+    series:[{
+      type:'pie',radius:['28%','62%'],center:['50%','52%'],
+      avoidLabelOverlap:true,
+      itemStyle:{borderRadius:5,borderColor:CUR_THEME.itemBorder,borderWidth:2},
+      label:{show:true,formatter:'{b}\n{d}%',fontSize:11,color:CUR_THEME.pieLabel,lineHeight:15},
+      labelLine:{lineStyle:{color:CUR_THEME.labelLine},length:8,length2:10},
+      emphasis:{label:{show:true,fontSize:13,fontWeight:'bold'}},
+      data:cats.map(function(c){return{name:c.name,value:Math.round(c.amount*100)/100,itemStyle:{color:c.color}}})
+    }]
+  });
+}
 function renderDetails(month){
   var recs=getDashRecords(month);
   var total=recs.length;
@@ -657,7 +730,7 @@ function renderDetails(month){
     }
     html+='<div class="di"><div class="di-l"><div class="di-date">'+dateStr+'</div><div class="di-txt">'+desc+'</div></div><div class="di-r"><span class="di-cat">'+cat+'</span><span class="di-amt">¥'+amt.toFixed(2)+'</span></div></div>';
   }
-  document.getElementById('detail-list').innerHTML=html||'<div style="padding:20px;text-align:center;color:var(--dim);font-size:13px">暂无明细记录</div>';
+  document.getElementById('detail-list').innerHTML=html||'<div style="padding:20px;text-align:center;color:#666;font-size:13px">暂无明细记录</div>';
   document.getElementById('pg-info').textContent=total>0?'第 '+(detailPage+1)+'/'+pages+' 页 · 共 '+total+' 条':'';
   document.getElementById('pg-prev').disabled=detailPage<=0;
   document.getElementById('pg-next').disabled=detailPage>=pages-1;
@@ -669,6 +742,15 @@ function render(){
   renderSummary(sm.income,sm.expense);
   var cats=catSummaryFromDetail(month);
   renderPie(cats);
+  var el=document.getElementById('c-pie-inc-wrap');
+  if(showIncomePie&&el){
+    el.classList.remove('hidden');
+    var incCats=incomeCatSummaryFromDetail(month);
+    renderIncomePie(incCats);
+  }else if(el){
+    el.classList.add('hidden');
+    if(incPieChart){incPieChart.clear();}
+  }
   renderHBar(cats);
   renderBar();
   renderLine(month);
@@ -698,6 +780,14 @@ function showError(msg,detail){
   document.getElementById('err-msg').textContent=msg;
   document.getElementById('err-detail').textContent=detail||'';
 }
+function resetLogin(){
+  localStorage.removeItem('fa_appid');
+  localStorage.removeItem('fa_secret');
+  localStorage.removeItem('fa_base');
+  localStorage.removeItem('fa_detail');
+  APP_ID='';APP_SECRET='';BASE='';DETAIL_TABLE='';
+  showLogin();
+}
 function showLogin(){
   document.getElementById('loading').classList.add('hidden');
   document.getElementById('error').classList.add('hidden');
@@ -714,8 +804,6 @@ function showApp(){
   document.getElementById('error').classList.add('hidden');
   document.getElementById('login').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
-  document.getElementById('app').classList.add('fade-in');
-  setTimeout(function(){document.getElementById('app').classList.remove('fade-in')},350);
 }
 
 // ═══ 登录表单提交 ═══
@@ -739,31 +827,65 @@ function hideSett(){closeOverlay('sett-overlay')}
 function showCat(){document.getElementById('cat-overlay').classList.remove('hidden')}
 function hideCat(cb){closeOverlay('cat-overlay',false,cb)}
 
-function renderCatSettings(){
+function renderCatsForTarget(targetId,catList,storeKey,colorMap,enabledArr){
   var html='';
-  for(var i=0;i<ALL_CATS.length;i++){
-    var c=ALL_CATS[i];
-    var checked=enabledCats.indexOf(c)>=0?' checked':'';
-    var dot=COLORS[c]||'#868e96';
-    html+='<div class="sc-item"><input type="checkbox" id="cb-'+i+'" data-cat="'+c+'"'+checked+'><label for="cb-'+i+'"><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:'+dot+';margin-right:6px"></span>'+c+'</label></div>';
+  for(var i=0;i<catList.length;i++){
+    var c=catList[i];
+    var checked=enabledArr.indexOf(c)>=0?' checked':'';
+    var dot=colorMap[c]||'#868e96';
+    html+='<div class="sc-item"><input type="checkbox" id="cb-'+targetId+'-'+i+'" data-cat="'+c+'"'+checked+'><label for="cb-'+targetId+'-'+i+'"><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:'+dot+';margin-right:6px"></span>'+c+'</label></div>';
   }
-  document.getElementById('cat-body').innerHTML=html;
-  // 绑定事件
-  for(var i=0;i<ALL_CATS.length;i++){
+  document.getElementById(targetId).innerHTML=html;
+  for(var i=0;i<catList.length;i++){
     (function(idx){
-      document.getElementById('cb-'+idx).addEventListener('change',function(){
-        var cat=ALL_CATS[idx];
-        var pos=enabledCats.indexOf(cat);
-        if(this.checked&&pos<0)enabledCats.push(cat);
-        else if(!this.checked&&pos>=0)enabledCats.splice(pos,1);
-        localStorage.setItem('fa_cats',JSON.stringify(enabledCats));
-        // 切分类后自动刷新图表，不重新拉数据
+      document.getElementById('cb-'+targetId+'-'+idx).addEventListener('change',function(){
+        var cat=catList[idx];
+        var pos=enabledArr.indexOf(cat);
+        if(this.checked&&pos<0)enabledArr.push(cat);
+        else if(!this.checked&&pos>=0)enabledArr.splice(pos,1);
+        localStorage.setItem(storeKey,JSON.stringify(enabledArr));
         if(pieChart){pieChart.dispose();pieChart=null}
         if(hbarChart){hbarChart.dispose();hbarChart=null}
+        if(incPieChart){incPieChart.dispose();incPieChart=null}
         render();
       });
     })(i);
   }
+}
+function renderCatSettings(){
+  catTabActive='exp';
+  renderCatsForTarget('cat-body-exp',ALL_CATS,'fa_cats',COLORS,enabledCats);
+  renderCatsForTarget('cat-body-inc',INCOME_CATS,'fa_inc_cats',INC_COLORS,enabledIncCats);
+  document.getElementById('tab-exp').classList.add('active');
+  document.getElementById('tab-inc').classList.remove('active');
+  document.getElementById('cat-body-exp').classList.remove('hidden');
+  document.getElementById('cat-body-inc').classList.add('hidden');
+  document.getElementById('cat-hint-exp').classList.remove('hidden');
+  document.getElementById('cat-hint-inc').classList.add('hidden');
+  // 收入分类开关控制 tab 可用性
+  toggleIncCatTab();
+}
+function toggleIncCatTab(){
+  var tab=document.getElementById('tab-inc');
+  if(showIncomePie){
+    tab.classList.remove('disabled');
+    tab.disabled=false;
+  }else{
+    tab.classList.add('disabled');
+    tab.disabled=true;
+    // 如果当前在收入 tab，切回支出
+    if(catTabActive==='inc')switchCatTab('exp');
+  }
+}
+function switchCatTab(tab){
+  catTabActive=tab;
+  var isExp=tab==='exp';
+  document.getElementById('tab-exp').classList.toggle('active',isExp);
+  document.getElementById('tab-inc').classList.toggle('active',!isExp);
+  document.getElementById('cat-body-exp').classList.toggle('hidden',!isExp);
+  document.getElementById('cat-body-inc').classList.toggle('hidden',isExp);
+  document.getElementById('cat-hint-exp').classList.toggle('hidden',!isExp);
+  document.getElementById('cat-hint-inc').classList.toggle('hidden',isExp);
 }
 
 // ═══ 弹窗控制（带动画关闭） ═══
@@ -782,18 +904,26 @@ function closeOverlay(id,unlock,cb){
 
 document.getElementById('btn-sett').addEventListener('click',function(){
   document.getElementById('sett-ver').textContent='v'+APP_VERSION;
+  document.getElementById('sett-inc-toggle').checked=showIncomePie;
   renderCatSettings();
   showSett();
 });
 document.getElementById('sett-close').addEventListener('click',hideSett);
-document.getElementById('sett-overlay').addEventListener('click',function(e){
-  if(e.target===this)hideSett();
+document.getElementById('sett-inc-toggle').addEventListener('change',function(){
+  showIncomePie=this.checked;
+  localStorage.setItem('fa_inc_pie',showIncomePie?'1':'0');
+  toggleIncCatTab();
+  if(pieChart){pieChart.dispose();pieChart=null}
+  if(incPieChart){incPieChart.dispose();incPieChart=null}
+  if(hbarChart){hbarChart.dispose();hbarChart=null}
+  render();
 });
+document.getElementById('sett-overlay').addEventListener('click',function(e){});
 document.getElementById('sett-cat').addEventListener('click',function(){showCat()});
 document.getElementById('cat-close').addEventListener('click',function(){hideCat(renderCatSettings)});
-document.getElementById('cat-overlay').addEventListener('click',function(e){
-  if(e.target===this)hideCat(renderCatSettings);
-});
+document.getElementById('tab-exp').addEventListener('click',function(){if(catTabActive!=='exp')switchCatTab('exp')});
+document.getElementById('tab-inc').addEventListener('click',function(){if(!showIncomePie)return;if(catTabActive!=='inc')switchCatTab('inc')});
+document.getElementById('cat-overlay').addEventListener('click',function(e){});
 // ═══ 检查更新 ═══
 function showUpd(){document.body.classList.add('lock-scroll');document.getElementById('upd-overlay').classList.remove('hidden')}
 function hideUpd(){closeOverlay('upd-overlay')}
@@ -876,9 +1006,7 @@ document.getElementById('sett-abt').addEventListener('click',function(){
   showAbout();
 });
 document.getElementById('abt-close').addEventListener('click',hideAbout);
-document.getElementById('abt-overlay').addEventListener('click',function(e){
-  if(e.target===this)hideAbout();
-});
+document.getElementById('abt-overlay').addEventListener('click',function(e){});
 function init(){
   loadConfig();
   applyTheme(activeTheme);

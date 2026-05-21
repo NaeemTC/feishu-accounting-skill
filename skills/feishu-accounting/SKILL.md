@@ -1,10 +1,10 @@
 ---
 name: feishu-accounting
-description: 飞书多维表格记账系统完整技能包。包含两步：1）运行 feishu-accounting-setup 引导用户完成飞书应用创建、多维表格搭建、凭证获取；2）使用 record_bill.py 进行日常记账（支持本地存储 + 飞书多维表格同步）。**同步规则：支出写明细表+汇总表，收入只写汇总表（明细表仅用于 App 仪表盘展示消费明细）。**
-version: 1.2.4
+description: 飞书多维表格记账系统完整技能包。包含两步：1）运行 feishu-accounting-setup 引导用户完成飞书应用创建、多维表格搭建、凭证获取；2）使用 record_bill.py 进行日常记账（支持本地存储 + 飞书多维表格同步）。**同步使用永久有效的 Tenant Token，不再有 7 天过期问题。同步规则：支出写明细表+汇总表，收入只写汇总表（明细表仅用于 App 仪表盘展示消费明细）。**
+version: 1.4.0
 author: Naeem
 homepage: https://github.com/NaeemTC/feishu-accounting-skill
-tags: [feishu, bitable, accounting, setup]
+tags: [feishu, bitable, accounting, setup, permissions]
 ---
 
 # 飞书多维表格记账系统
@@ -15,7 +15,7 @@ tags: [feishu, bitable, accounting, setup]
 
 | 阶段 | 触发条件 | 做什么 |
 |------|----------|--------|
-| **Setup** | 用户请求配置记账系统 | 安装 CLI → 创建飞书应用 → 建表 → 输出凭证 |
+| **Setup** | 用户请求配置记账系统 | 引导创建飞书应用 → 一键搭建多维表格 → 输出凭证 |
 | **Usage** | 用户记账（说金额/上传图片/查账单） | 解析记账输入 → 写本地 bills/ → 同步飞书两个表 |
 
 ---
@@ -32,33 +32,7 @@ tags: [feishu, bitable, accounting, setup]
 - "setup feishu accounting"
 - "我想用飞书记账"
 
-### Step 1：安装 feishu-cli
-
-```bash
-# 安装到 ~/.feishu-cli/bin/（无需 sudo）
-INSTALL_DIR="$HOME/.feishu-cli/bin"
-mkdir -p "$INSTALL_DIR"
-
-# 从 GitHub 官方 Releases 下载（带断点续传）
-curl -L -C - --max-time 600 \
-  "https://github.com/riba2534/feishu-cli/releases/download/v1.26.0/feishu-cli_v1.26.0_linux-amd64.tar.gz" \
-  -o /tmp/feishu-cli.tar.gz
-
-cd /tmp && tar -xzf feishu-cli.tar.gz
-cp feishu-cli_v1.26.0_linux-amd64/feishu-cli "$INSTALL_DIR/"
-chmod +x "$INSTALL_DIR/feishu-cli"
-
-# 写入 PATH（如果 ~/.bashrc 里还没有）
-SHELL_RC="$HOME/.bashrc"
-if ! grep -q "$INSTALL_DIR" "$SHELL_RC" 2>/dev/null; then
-  echo "export PATH=\"\$HOME/.feishu-cli/bin:\$PATH\"" >> "$SHELL_RC"
-fi
-export PATH="$HOME/.feishu-cli/bin:$PATH"
-
-feishu-cli --version
-```
-
-### Step 2：引导用户创建飞书自建应用
+### Step 1：引导用户创建飞书自建应用
 
 **把以下内容发给用户：**
 
@@ -73,129 +47,55 @@ feishu-cli --version
 
 等待用户提供 App ID 和 App Secret。
 
-### Step 3：引导用户开通权限
+### Step 2：一键开通权限（Agent 自动生成授权链接，用户只需点击确认）
 
-**把以下内容发给用户：**
+**AI 执行** `apply_permissions.py`（自动获取 Tenant Token、生成一键授权链接）：
 
-> **请在飞书开放平台开通以下权限：**
+```bash
+cd /path/to/feishu-accounting/
+python3 scripts/apply_permissions.py \
+  --app-id "cli_用户的AppID" \
+  --app-secret "用户的AppSecret"
+```
+
+脚本输出一个 **一键授权链接**，AI 直接把链接发给用户：
+
+> 点击下方链接，所有记账需要的权限已经预选好了，你只需确认一次：
 >
-> 1. 打开 https://open.feishu.cn/app/[你的AppID]/auth
-> 2. 点击「权限管理」→「开通权限」，搜索并开通：
+> 🔗 `https://open.feishu.cn/app/{appId}/auth?q=base:app:read,base:app:update,...&op_from=openapi&token_type=tenant`
 >
-> | 权限 | 标识 |
-> |------|------|
-> | 查看、编辑多维表格 | `base:app:read`、`base:app:update` |
-> | 创建多维表格 | `base:app:create` |
-> | 数据表 CRUD | `base:table:read/create/update/delete` |
-> | 字段 CRUD | `base:field:read/create/update/delete` |
-> | 记录 CRUD | `base:record:read/create/update/delete` |
-> | 视图读写 | `base:view:read`、`base:view:write_only` |
->
-> 3. 开通权限后，点击「申请发版」→「线上版本」→「确认发布」
->
-> **⚠️ 不发布版本权限不会生效！**
+> 点击后 → 页面会列出所有需要的 base 权限 → 点击 **「确认开通权限」** → 完成。
 
-### Step 4：配置 feishu-cli
+**然后 AI 调用** `scopes/apply` API 提交管理员审批申请。
 
-```bash
-feishu-cli config init
-# 编辑 ~/.feishu-cli/config.yaml，填入用户的 App ID 和 App Secret
-```
+---
 
-```yaml
-app_id: "cli_用户的AppID"
-app_secret: "用户的AppSecret"
-base_url: "https://open.feishu.cn"
-debug: false
-```
+**用户只需 2 步：**
+1️⃣  点链接 → 确认开通所有权限
+2️⃣  如果是第一次发布该应用，去 版本管理与发布 → 创建版本 → 填写版本号 → 申请发布 → 确认发布（后续追加权限无需再发版）
 
-### Step 5：认证
+### Step 3：一键搭建多维表格
+
+用户提供 App ID + App Secret 后，运行 `setup_bitable.py`（无需安装任何外部工具，直接调飞书 API）：
 
 ```bash
-feishu-cli auth login --domain bitable --recommend --json --no-wait
+cd /path/to/feishu-accounting/
+python3 scripts/setup_bitable.py \
+  --app-id "cli_用户的AppID" \
+  --app-secret "用户的AppSecret"
 ```
 
-**把输出中的 `verification_url` 发送给用户，让他们在浏览器打开链接，点击「授权」即可完成，无需扫码。**
+脚本会自动完成：
+1. 获取 Tenant Token（永久有效）
+2. 创建多维表格「个人记账本」
+3. 创建明细表 + 汇总表
+4. 创建所有字段（文本/月份/金额/分类）并补充选项（14个分类选项）
 
-### Step 6：创建多维表格
+输出 5 个凭证：App ID / App Secret / Base Token / 明细表 Table ID / 汇总表 Table ID
 
-```bash
-feishu-cli bitable create --name "个人记账本"
-```
+### Step 4：输出凭证给用户
 
-**记录返回的 base_token**（格式如 `your_base_token_here`）。
-
-### Step 7：创建两个表
-
-```bash
-BASE_TOKEN="上面获取的base_token"
-
-# 创建明细表
-feishu-cli bitable table create --base-token $BASE_TOKEN --name "明细表"
-# 记录返回的 table_id（明细表ID）
-
-# 创建汇总表
-feishu-cli bitable table create --base-token $BASE_TOKEN --name "汇总表"
-# 记录返回的 table_id（汇总表ID）
-```
-
-### Step 8：创建字段
-
-```bash
-BASE_TOKEN="你的base_token"
-DETAIL_TABLE_ID="明细表table_id"
-SUMMARY_TABLE_ID="汇总表table_id"
-
-# ── 明细表字段 ──
-feishu-cli bitable field create --base-token $BASE_TOKEN --table-id $DETAIL_TABLE_ID \
-  --config '{"field_name":"文本","type":"text"}'
-feishu-cli bitable field create --base-token $BASE_TOKEN --table-id $DETAIL_TABLE_ID \
-  --config '{"field_name":"月份","type":"text"}'
-feishu-cli bitable field create --base-token $BASE_TOKEN --table-id $DETAIL_TABLE_ID \
-  --config '{"field_name":"金额","type":"number"}'
-feishu-cli bitable field create --base-token $BASE_TOKEN --table-id $DETAIL_TABLE_ID \
-  --config '{"field_name":"分类","type":"single_select"}'
-
-# 为明细表分类字段加选项
-feishu-cli bitable field list --base-token $BASE_TOKEN --table-id $DETAIL_TABLE_ID
-# 找到分类字段ID后
-feishu-cli bitable field update --base-token $BASE_TOKEN --table-id $DETAIL_TABLE_ID \
-  --field-id <分类字段ID> \
-  --config '{"field_name":"分类","type":"select","options":[{"name":"餐饮"},{"name":"购物"},{"name":"交通"},{"name":"娱乐"},{"name":"通讯"},{"name":"生活"},{"name":"医疗"},{"name":"住房"},{"name":"教育"},{"name":"服饰"},{"name":"数码"},{"name":"运动"},{"name":"宠物"},{"name":"其它"}]}'
-
-# ── 汇总表字段 ──
-feishu-cli bitable field create --base-token $BASE_TOKEN --table-id $SUMMARY_TABLE_ID \
-  --config '{"field_name":"编号","type":"text"}'
-feishu-cli bitable field create --base-token $BASE_TOKEN --table-id $SUMMARY_TABLE_ID \
-  --config '{"field_name":"描述","type":"text"}'
-feishu-cli bitable field create --base-token $BASE_TOKEN --table-id $SUMMARY_TABLE_ID \
-  --config '{"field_name":"周期","type":"text"}'
-feishu-cli bitable field create --base-token $BASE_TOKEN --table-id $SUMMARY_TABLE_ID \
-  --config '{"field_name":"分类","type":"single_select"}'
-
-# 为汇总表分类字段加选项
-feishu-cli bitable field list --base-token $BASE_TOKEN --table-id $SUMMARY_TABLE_ID
-feishu-cli bitable field update --base-token $BASE_TOKEN --table-id $SUMMARY_TABLE_ID \
-  --field-id <分类字段ID> \
-  --config '{"field_name":"分类","type":"select","options":[{"name":"支出"},{"name":"收入"}]}'
-
-feishu-cli bitable field create --base-token $BASE_TOKEN --table-id $SUMMARY_TABLE_ID \
-  --config '{"field_name":"金额","type":"number"}'
-```
-
-> **已有用户升级分类**：如果你之前已经建好表，用以下命令给分类字段补充新选项（13分类）：
-> ```bash
-> # 先找到分类字段ID
-> feishu-cli bitable field list --base-token $BASE_TOKEN --table-id $DETAIL_TABLE_ID
-> # 替换下方 <分类字段ID> 后执行
-> feishu-cli bitable field update --base-token $BASE_TOKEN --table-id $DETAIL_TABLE_ID \
->   --field-id <分类字段ID> \
->   --config '{"field_name":"分类","type":"select","options":[{"name":"餐饮"},{"name":"购物"},{"name":"交通"},{"name":"娱乐"},{"name":"通讯"},{"name":"生活"},{"name":"医疗"},{"name":"住房"},{"name":"教育"},{"name":"服饰"},{"name":"数码"},{"name":"运动"},{"name":"宠物"},{"name":"其它"}]}'
-> ```
-
-### Step 9：输出凭证给用户
-
-**AI 必须将以下 5 个凭证填入实际值后发送给用户（App ID / App Secret 来自 Step 2 用户提供的值，Base Token / Table ID 来自 Step 6-7 创建的）：**
+**AI 必须将以下 5 个凭证填入实际值后发送给用户（App ID / App Secret 来自 Step 1 用户提供的值，Base Token / Table ID 来自 Step 3 脚本输出的）：**
 
 > ✅ 飞书记账配置完成！
 >
@@ -212,28 +112,22 @@ feishu-cli bitable field create --base-token $BASE_TOKEN --table-id $SUMMARY_TAB
 > 📊 **多维表格链接**：https://bytedance.feishu.cn/base/`你的Base_Token`
 > （浏览器打开就能直接看到你建的明细表和汇总表）
 
-### Step 10：配置凭证（让 record_bill.py 能用）
+### Step 5：配置凭证（让 record_bill.py 能用）
 
 **AI 执行**，在 skill 目录下创建 `.env` 文件（`record_bill.py` 启动时会自动加载）：
 
 ```bash
 # 在技能目录创建 .env（record_bill.py 会自动从同目录读取）
 cat > /path/to/feishu-accounting/.env << 'EOF'
-FEISHU_BASE_TOKEN=$BASE_TOKEN
-FEISHU_DETAIL_TABLE_ID=$DETAIL_TABLE_ID
-FEISHU_SUMMARY_TABLE_ID=$SUMMARY_TABLE_ID
+FEISHU_APP_ID=你的App_ID
+FEISHU_APP_SECRET=你的App_Secret
+FEISHU_BASE_TOKEN=你的Base_Token
+FEISHU_DETAIL_TABLE_ID=你的明细表ID
+FEISHU_SUMMARY_TABLE_ID=你的汇总表ID
 EOF
 ```
 
-或通过环境变量注入（适合临时调用）：
-
-```bash
-export FEISHU_BASE_TOKEN="你的base_token"
-export FEISHU_DETAIL_TABLE_ID="你的明细表ID"
-export FEISHU_SUMMARY_TABLE_ID="你的汇总表ID"
-```
-
-### Step 11：询问用户是否安装 App（仪表盘）
+### Step 6：询问用户是否安装 App（仪表盘）
 
 配置完成后，**询问用户**要不要装 Android 仪表盘 App 来看图表和数据：
 
@@ -318,26 +212,26 @@ python3 scripts/record_bill.py --summary --month 2026-05
 
 ### 分类关键词（AI 解析参考）
 
-详见 `references/categories.md`，核心规则：
+详见 `references/categories.md` 和 `references/feishu-permissions-api.md`（飞书权限 API 模式），核心规则：
 
 | 类型 | 分类 | 关键词 |
 |------|------|--------|
-|| 支出 | 餐饮 | 早饭/午饭/晚饭/外卖/咖啡/奶茶/餐厅 |
-|| 支出 | 购物 | 超市/衣服/鞋子/电商/淘宝/京东/日用品 |
-|| 支出 | 交通 | 打车/地铁/公交/停车/加油/滴滴 |
-|| 支出 | 娱乐 | 电影/KTV/旅游/游戏氪金/彩票 |
-|| 支出 | 通讯 | 话费/流量/套餐 |
-|| 支出 | 医疗 | 医院/药店/挂号/体检 |
-|| 支出 | 住房 | 房租/水电/物业/宽带 |
-|| 支出 | 教育 | 学费/课程/书/培训 |
-|| 支出 | 服饰 | 衣服/鞋子/包包/穿搭/配饰 |
-|| 支出 | 生活 | 日用/日用品/理发/洗衣/五金 |
-|| 支出 | 数码 | 手机/数码/充电器/耳机/硬盘 |
-|| 支出 | 运动 | 健身/运动/游泳/羽毛球/球鞋 |
-|| 支出 | 宠物 | 宠物/猫粮/狗粮/猫砂/疫苗 |
-|| 收入 | 工资 | 工资/薪资/月薪 |
-|| 收入 | 兼职 | 兼职/副业/接单 |
-|| 收入 | 投资 | 理财/股票/基金/利息 |
+| 支出 | 餐饮 | 早饭/午饭/晚饭/外卖/咖啡/奶茶/餐厅 |
+| 支出 | 购物 | 超市/衣服/鞋子/电商/淘宝/京东/日用品 |
+| 支出 | 交通 | 打车/地铁/公交/停车/加油/滴滴 |
+| 支出 | 娱乐 | 电影/KTV/旅游/游戏氪金/彩票 |
+| 支出 | 通讯 | 话费/流量/套餐 |
+| 支出 | 医疗 | 医院/药店/挂号/体检 |
+| 支出 | 住房 | 房租/水电/物业/宽带 |
+| 支出 | 教育 | 学费/课程/书/培训 |
+| 支出 | 服饰 | 衣服/鞋子/包包/穿搭/配饰 |
+| 支出 | 生活 | 日用/日用品/理发/洗衣/五金 |
+| 支出 | 数码 | 手机/数码/充电器/耳机/硬盘 |
+| 支出 | 运动 | 健身/运动/游泳/羽毛球/球鞋 |
+| 支出 | 宠物 | 宠物/猫粮/狗粮/猫砂/疫苗 |
+| 收入 | 工资 | 工资/薪资/月薪 |
+| 收入 | 兼职 | 兼职/副业/接单 |
+| 收入 | 投资 | 理财/股票/基金/利息 |
 
 **飞书分类映射**：13个分类在飞书明细表中均有对应选项，无需映射损耗。本地「其他/银行/工资/奖金/兼职/投资」→ 飞书「其它」。
 
@@ -347,20 +241,29 @@ python3 scripts/record_bill.py --summary --month 2026-05
 
 ```
 feishu-accounting/
-├── SKILL.md              # 本文件
+├── SKILL.md                   # 本文件
 ├── scripts/
-│   └── record_bill.py     # 记账核心脚本
+│   ├── record_bill.py         # 记账核心脚本
+│   ├── setup_bitable.py       # 一键搭建多维表格脚本
+│   ├── cleanup_bitable.py     # 清空多维表格数据（重置/测试用）
+│   └── apply_permissions.py   # 一键权限申请——生成授权链接 + 调 scopes/apply
 └── references/
-    └── categories.md      # 分类关键词参考
+    └── categories.md                # 分类关键词参考
+    └── feishu-base-api-pitfalls.md   # base/v3 API 踩坑记录（分页/字段/格式）
+    └── feishu-permissions-api.md     # 飞书权限一键授权 API 模式
 ```
 
 ## 环境变量
 
 | 变量名 | 说明 | 示例 |
 |--------|------|------|
+| `FEISHU_APP_ID` | 飞书应用 App ID（必填） | `cli_xxxxxxxxxxxxxxxx` |
+| `FEISHU_APP_SECRET` | 飞书应用 App Secret（必填） | `xxxxxxxxxxxxxxxxxx` |
 | `FEISHU_BASE_TOKEN` | 多维表格 Base Token | `your_base_token_here` |
 | `FEISHU_DETAIL_TABLE_ID` | 明细表 ID | `tblxxxxxxxxxxxxxxxx` |
 | `FEISHU_SUMMARY_TABLE_ID` | 汇总表 ID | `tblyyyyyyyyyyyyyyyy` |
+
+> **无需 User Access Token**：record_bill.py 使用永久有效的 Tenant Token（自动从 App ID + Secret 获取），不再有 7 天过期问题。
 
 ---
 
@@ -368,25 +271,15 @@ feishu-accounting/
 
 | 常见问题 | 原因 | 解决办法 |
 |------|------|--------|
-| 飞书字段 index 写反，写入后数据全 null | 金额写成 index=4、分类写成 index=2，字段顺序和实际不匹配 | 写字段前用 `feishu-cli bitable field list` 确认字段顺序，不要靠记忆 |
+| 建表时 HTTP 400 Bad Request | 缺 `base:table:create` 权限 | 在开放平台单独开通此权限并重新发版 |
+| 飞书字段 index 写反，写入后数据全 null | 金额写成 index=4、分类写成 index=2，字段顺序和实际不匹配 | 写字段前用 Tenant Token 调 `GET .../fields` 确认字段顺序，不要靠记忆 |
 | `sync_to_feishu()` 漏传某些字段 | 只同步了月份/金额/分类，`文本` 和 `单选` 字段未传入。飞书 API 返回 200 但这些字段全 null | 新增飞书字段后，`sync_to_feishu()` 的 config 和函数签名必须同步更新 |
-| Tenant Token 下 `page_size=100` 实际只返回 20 条 | 飞书 API 对 Tenant Token 有分页限制，`page_token` 返回 null | 翻页用 `offset` 参数：第 1 页不带 offset，第 2 页 `offset=20`，第 3 页 `offset=40` |
+| Tenant Token 下 `page_size=100` 实际只返回 ~20 条 | 飞书 API 对 Tenant Token 有分页限制，`page_token` 返回 null | 翻页用 `offset += len(records)` 动态累加（而非固定步长）。详见 `references/feishu-base-api-pitfalls.md` |
 | 用 `text.includes('-')` 判断有效记录，漏掉了有效数据 | 明细表有些记录的 `文本` 字段为 null，但金额和分类有效。`text.includes('-')` 会把这些记录全过滤掉 | 判断标准：amount 非 null 且非 0 即可进入聚合，不管 text 是不是 null |
 | `record_bill.py` 只写明细表，汇总表数据缺失 | 汇总表是仪表盘收支数据来源之一，漏写会导致统计数据不完整 | 每次 `add_record()` 必须同时调用 `sync_to_feishu()` 写明细表 + `sync_summary_to_feishu()` 写汇总表 |
+| `.env` 中 FEISHU_APP_ID 没生效，仍用了父 shell 的旧值 | `os.environ.setdefault()` 不覆盖已有变量 | `.env` 加载改用直接赋值 `os.environ[k] = v`。详见 `references/feishu-base-api-pitfalls.md` |
 
 ---
 
-## 飞书文本字段格式（与仪表盘 app 关联）
 
-`record_bill.py` 写入飞书的文本格式为：
 
-```
-{YYYY-MM-DD} {HH:mm}{备注}
-例如：2026-05-15 13:11停车费
-```
-
-仪表盘 app 解析规则：
-- 有时间戳的记录：`(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})` → 提取日期 + 时间
-- 无时间戳的旧记录：`(\d{4}-\d{2}-\d{2})` → 仅提取日期（兜底）
-
-> ⚠️ 如需修改 `record_bill.py` 的文本写入格式，请同步确认仪表盘 app 的正则解析逻辑能否兼容新旧两种格式。
