@@ -11,6 +11,7 @@
 import argparse
 import json
 import sys
+import time
 import urllib.request
 import urllib.error
 
@@ -83,6 +84,7 @@ def create_field(token: str, base_token: str, table_id: str,
 def update_field_options(token: str, base_token: str, table_id: str,
                          field_id: str, field_name: str, options: list[dict]) -> str:
     """更新字段选项（单选/多选）"""
+    time.sleep(1)  # 等待字段创建缓存生效
     url = f"{FEISHU_HOST}/open-apis/base/v3/bases/{base_token}/tables/{table_id}/fields/{field_id}"
     payload = {"field_name": field_name, "type": "select", "options": options}
     data = json.dumps(payload).encode("utf-8")
