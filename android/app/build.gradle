@@ -18,10 +18,15 @@ android {
     }
     signingConfigs {
         release {
-            storeFile file('release.keystore')
-            storePassword 'naeem123456'
-            keyAlias 'release'
-            keyPassword 'naeem123456'
+            def keystoreProps = new Properties()
+            def keystoreFile = file("${project.rootDir}/keystore.properties")
+            if (keystoreFile.exists()) {
+                keystoreProps.load(new FileInputStream(keystoreFile))
+            }
+            storeFile file(keystoreProps.getProperty('storeFile', 'release.keystore'))
+            storePassword keystoreProps.getProperty('storePassword', '')
+            keyAlias keystoreProps.getProperty('keyAlias', 'release')
+            keyPassword keystoreProps.getProperty('keyPassword', '')
         }
     }
     buildTypes {
