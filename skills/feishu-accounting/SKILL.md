@@ -1,10 +1,10 @@
 ---
 name: feishu-accounting
 description: 飞书多维表格记账系统完整技能包。包含两步：1）运行 feishu-accounting-setup 引导用户完成飞书应用创建、多维表格搭建、凭证获取；2）使用 record_bill.py 进行日常记账（支持本地存储 + 飞书多维表格同步）。**同步使用永久有效的 Tenant Token，不再有 7 天过期问题。同步规则：支出写明细表+汇总表，收入只写汇总表（明细表仅用于 App 仪表盘展示消费明细）。**
-version: 1.2.5
+version: 1.3.0
 author: Naeem
 homepage: https://github.com/NaeemTC/feishu-accounting-skill
-tags: [feishu, bitable, accounting, setup]
+tags: [feishu, bitable, accounting, setup, permissions]
 ---
 
 # 飞书多维表格记账系统
@@ -47,27 +47,40 @@ tags: [feishu, bitable, accounting, setup]
 
 等待用户提供 App ID 和 App Secret。
 
-### Step 2：引导用户开通权限
+### Step 2：一键开通权限（Agent 自动生成授权链接，用户只需点击确认）
 
-**把以下内容发给用户：**
+**AI 执行** `apply_permissions.py`（自动获取 Tenant Token、生成一键授权链接）：
 
-> **请在飞书开放平台开通以下权限：**
+```bash
+cd /path/to/feishu-accounting/
+python3 scripts/apply_permissions.py \
+  --app-id "cli_用户的AppID" \
+  --app-secret "用户的AppSecret"
+```
+
+脚本输出一个 **一键授权链接**，AI 直接把链接发给用户：
+
+> 点击下方链接，所有记账需要的权限已经预选好了，你只需确认一次：
 >
-> 1. 打开 https://open.feishu.cn/app/[你的AppID]/auth
-> 2. 点击「权限管理」→「开通权限」，搜索并开通：
+> 🔗 `https://open.feishu.cn/app/{appId}/auth?q=base:app:read,base:app:update,...&op_from=openapi&token_type=tenant`
 >
-> | 权限 | 标识 |
-> |------|------|
-> | 查看、编辑多维表格 | `base:app:read`、`base:app:update` |
-> | 创建多维表格 | `base:app:create` |
-> | 数据表 CRUD | `base:table:read/create/update/delete` |
-> | 字段 CRUD | `base:field:read/create/update/delete` |
-> | 记录 CRUD | `base:record:read/create/update/delete` |
-> | 视图读写 | `base:view:read`、`base:view:write_only` |
->
-> 3. 开通权限后，点击「申请发版」→「线上版本」→「确认发布」
->
-> **⚠️ 不发布版本权限不会生效！**
+> 点击后 → 页面会列出所有需要的 base 权限 → 点击 **「确认开通权限」** → 完成。
+
+**然后 AI 调用** `scopes/apply` API 提交管理员审批申请。
+
+---
+
+**用户需要做 3 步：**
+
+| # | 操作 | 耗时 |
+|---|------|------|
+| 1️⃣ | 点链接 → 确认开通所有权限 | 10 秒 |
+| 2️⃣ | 在飞书审批中通过申请 | 10 秒 |
+| 3️⃣ | 版本管理与发布 → 创建版本 → 填写版本号 → 申请发布 → 确认 | 30 秒 |
+
+**⚠️ 不发布版本权限不会生效！**
+
+> 对比旧版：以前要手动搜索 6 个权限组逐个勾选 + 2 次发布，现在只需点 1 个链接 + 确认 1 次 + 发布 1 次。
 
 ### Step 3：一键搭建多维表格
 
@@ -211,22 +224,22 @@ python3 scripts/record_bill.py --summary --month 2026-05
 
 | 类型 | 分类 | 关键词 |
 |------|------|--------|
-|| 支出 | 餐饮 | 早饭/午饭/晚饭/外卖/咖啡/奶茶/餐厅 |
-|| 支出 | 购物 | 超市/衣服/鞋子/电商/淘宝/京东/日用品 |
-|| 支出 | 交通 | 打车/地铁/公交/停车/加油/滴滴 |
-|| 支出 | 娱乐 | 电影/KTV/旅游/游戏氪金/彩票 |
-|| 支出 | 通讯 | 话费/流量/套餐 |
-|| 支出 | 医疗 | 医院/药店/挂号/体检 |
-|| 支出 | 住房 | 房租/水电/物业/宽带 |
-|| 支出 | 教育 | 学费/课程/书/培训 |
-|| 支出 | 服饰 | 衣服/鞋子/包包/穿搭/配饰 |
-|| 支出 | 生活 | 日用/日用品/理发/洗衣/五金 |
-|| 支出 | 数码 | 手机/数码/充电器/耳机/硬盘 |
-|| 支出 | 运动 | 健身/运动/游泳/羽毛球/球鞋 |
-|| 支出 | 宠物 | 宠物/猫粮/狗粮/猫砂/疫苗 |
-|| 收入 | 工资 | 工资/薪资/月薪 |
-|| 收入 | 兼职 | 兼职/副业/接单 |
-|| 收入 | 投资 | 理财/股票/基金/利息 |
+| 支出 | 餐饮 | 早饭/午饭/晚饭/外卖/咖啡/奶茶/餐厅 |
+| 支出 | 购物 | 超市/衣服/鞋子/电商/淘宝/京东/日用品 |
+| 支出 | 交通 | 打车/地铁/公交/停车/加油/滴滴 |
+| 支出 | 娱乐 | 电影/KTV/旅游/游戏氪金/彩票 |
+| 支出 | 通讯 | 话费/流量/套餐 |
+| 支出 | 医疗 | 医院/药店/挂号/体检 |
+| 支出 | 住房 | 房租/水电/物业/宽带 |
+| 支出 | 教育 | 学费/课程/书/培训 |
+| 支出 | 服饰 | 衣服/鞋子/包包/穿搭/配饰 |
+| 支出 | 生活 | 日用/日用品/理发/洗衣/五金 |
+| 支出 | 数码 | 手机/数码/充电器/耳机/硬盘 |
+| 支出 | 运动 | 健身/运动/游泳/羽毛球/球鞋 |
+| 支出 | 宠物 | 宠物/猫粮/狗粮/猫砂/疫苗 |
+| 收入 | 工资 | 工资/薪资/月薪 |
+| 收入 | 兼职 | 兼职/副业/接单 |
+| 收入 | 投资 | 理财/股票/基金/利息 |
 
 **飞书分类映射**：13个分类在飞书明细表中均有对应选项，无需映射损耗。本地「其他/银行/工资/奖金/兼职/投资」→ 飞书「其它」。
 
@@ -235,7 +248,6 @@ python3 scripts/record_bill.py --summary --month 2026-05
 ## 目录结构
 
 ```
-
 feishu-accounting/
 ├── SKILL.md                   # 本文件
 ├── scripts/
@@ -264,6 +276,7 @@ feishu-accounting/
 
 | 常见问题 | 原因 | 解决办法 |
 |------|------|--------|
+| 建表时 HTTP 400 Bad Request | 缺 `base:table:create` 权限 | 在开放平台单独开通此权限并重新发版 |
 | 飞书字段 index 写反，写入后数据全 null | 金额写成 index=4、分类写成 index=2，字段顺序和实际不匹配 | 写字段前用 Tenant Token 调 `GET .../fields` 确认字段顺序，不要靠记忆 |
 | `sync_to_feishu()` 漏传某些字段 | 只同步了月份/金额/分类，`文本` 和 `单选` 字段未传入。飞书 API 返回 200 但这些字段全 null | 新增飞书字段后，`sync_to_feishu()` 的 config 和函数签名必须同步更新 |
 | Tenant Token 下 `page_size=100` 实际只返回 20 条 | 飞书 API 对 Tenant Token 有分页限制，`page_token` 返回 null | 翻页用 `offset` 参数：第 1 页不带 offset，第 2 页 `offset=20`，第 3 页 `offset=40` |
