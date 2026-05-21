@@ -152,6 +152,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <h3>加载失败</h3>
   <p id="err-msg"></p>
   <pre id="err-detail"></pre>
+  <button class="btn" onclick="resetLogin()">重新配置</button>
   <button class="btn" onclick="location.reload()">重试</button>
 </div>
 
@@ -687,6 +688,14 @@ function showError(msg,detail){
   document.getElementById('app').classList.add('hidden');
   document.getElementById('err-msg').textContent=msg;
   document.getElementById('err-detail').textContent=detail||'';
+}
+function resetLogin(){
+  localStorage.removeItem('fa_appid');
+  localStorage.removeItem('fa_secret');
+  localStorage.removeItem('fa_base');
+  localStorage.removeItem('fa_detail');
+  APP_ID='';APP_SECRET='';BASE='';DETAIL_TABLE='';
+  showLogin();
 }
 function showLogin(){
   document.getElementById('loading').classList.add('hidden');
