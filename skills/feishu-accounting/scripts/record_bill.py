@@ -34,7 +34,7 @@ if _SKILL_ENV.exists():
         line = line.strip()
         if "=" in line and not line.startswith("#"):
             k, v = line.split("=", 1)
-            os.environ.setdefault(k.strip(), v.strip())
+            os.environ[k.strip()] = v.strip()
 
 # ── 配置 ─────────────────────────────────────────────────────────────────────
 

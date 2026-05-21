@@ -220,7 +220,7 @@ python3 scripts/record_bill.py --summary --month 2026-05
 
 ### 分类关键词（AI 解析参考）
 
-详见 `references/categories.md`，核心规则：
+详见 `references/categories.md` 和 `references/feishu-permissions-api.md`（飞书权限 API 模式），核心规则：
 
 | 类型 | 分类 | 关键词 |
 |------|------|--------|
@@ -253,7 +253,8 @@ feishu-accounting/
 ├── scripts/
 │   ├── record_bill.py         # 记账核心脚本
 │   ├── setup_bitable.py       # 一键搭建多维表格脚本
-│   └── cleanup_bitable.py     # 清空多维表格数据（重置/测试用）
+│   ├── cleanup_bitable.py     # 清空多维表格数据（重置/测试用）
+│   └── apply_permissions.py   # 一键权限申请——生成授权链接 + 调 scopes/apply
 └── references/
     └── categories.md          # 分类关键词参考
 ```
