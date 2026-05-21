@@ -222,6 +222,4 @@ MIT
 
 ---
 
-## 🙏 感谢
 
-- [**larksuite/cli**](https://github.com/larksuite/cli) — 飞书官方 CLI 工具，提供多维表格 API 的便捷操作能力
