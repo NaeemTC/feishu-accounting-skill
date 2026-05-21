@@ -122,17 +122,7 @@ FEISHU_SUMMARY_TABLE_ID=你的汇总表ID
 EOF
 ```
 
-### Step 6：打开多维表格分享权限（重要！）
-
-**⚠️ 必须执行，否则 Tenant Token 无法写入数据：**
-
-1. 打开多维表格：https://bytedance.feishu.cn/base/`你的Base_Token`
-2. 点右上角 **分享**
-3. 找到「组织内获得链接的人」，从「可阅读」改为 **「可编辑」**
-
-这样 Tenant Token 就有写权限了，否则报 `91403 you don't have permission`。
-
-### Step 7：询问用户是否安装 App（仪表盘）
+### Step 6：询问用户是否安装 App（仪表盘）
 
 配置完成后，**询问用户**要不要装 Android 仪表盘 App 来看图表和数据：
 
