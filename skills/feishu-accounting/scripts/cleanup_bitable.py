@@ -137,7 +137,7 @@ def main():
                 print(f"  第{batch}页 (offset={offset}): 删了 {deleted}/{len(records)} 条")
                 table_count += deleted
 
-            offset += 100
+            offset += len(records)
             batch += 1
 
         if not args.dry_run:

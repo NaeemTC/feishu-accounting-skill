@@ -430,7 +430,7 @@ def _delete_from_feishu(record: dict, date_str: str) -> dict:
                             return {"success": True, "record_id": rid}
                         else:
                             return {"success": False, "error": f"飞书删除失败: {del_r.get('msg')}"}
-            offset += 100
+            offset += len(records)
         return {"success": False, "error": "飞书未找到匹配记录"}
     except Exception as e:
         return {"success": False, "error": str(e)}
