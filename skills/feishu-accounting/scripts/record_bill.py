@@ -366,6 +366,104 @@ def add_record(amount: float, bill_type: str, category: str,
     return result
 
 
+def _delete_from_feishu(record: dict, date_str: str) -> dict:
+    """从飞书明细表删除匹配的记录（通过文本+金额匹配）"""
+    try:
+        token = _get_tenant_token()
+        target_text = f"{date_str} {record['time']}{record['note']}"
+        target_amount = record['amount']
+        base = FEISHU_BASE_TOKEN
+        tbl = FEISHU_DETAIL_TABLE_ID
+
+        # 翻页搜索匹配记录
+        offset = 0
+        while True:
+            url = (f"https://open.feishu.cn/open-apis/base/v3/bases/{base}"
+                   f"/tables/{tbl}/records?page_size=100&offset={offset}")
+            req = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                data = json.loads(resp.read())
+
+            field_ids = data["data"].get("field_id_list", [])
+            records = data["data"]["data"]
+            record_ids = data["data"]["record_id_list"]
+            if not records:
+                break
+
+            for i, rec in enumerate(records):
+                if len(rec) >= 3:
+                    text_val = str(rec[0]) if rec[0] else ""
+                    amount_val = rec[2] if rec[2] else 0
+                    if text_val == target_text and abs(float(amount_val) - target_amount) < 0.01:
+                        rid = record_ids[i]
+                        del_url = (f"https://open.feishu.cn/open-apis/base/v3/bases/{base}"
+                                   f"/tables/{tbl}/records/{rid}")
+                        del_req = urllib.request.Request(
+                            del_url, method="DELETE",
+                            headers={"Authorization": f"Bearer {token}"})
+                        with urllib.request.urlopen(del_req, timeout=15) as resp:
+                            del_r = json.loads(resp.read())
+                        if del_r.get("code") == 0:
+                            return {"success": True, "record_id": rid}
+                        else:
+                            return {"success": False, "error": f"飞书删除失败: {del_r.get('msg')}"}
+            offset += 100
+        return {"success": False, "error": "飞书未找到匹配记录"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+def delete_record(date_str: str, index: int, sync_feishu: bool = True) -> dict:
+    """删除指定日期的第 N 条记录，返回操作结果"""
+    BILLS_DIR.mkdir(parents=True, exist_ok=True)
+    file_path = bill_file_path(date_str)
+    existing = parse_bill_file(file_path)
+
+    if not existing["records"]:
+        return {"success": False, "error": f"{date_str} 没有记录"}
+    if index < 1 or index > len(existing["records"]):
+        return {
+            "success": False,
+            "error": f"序号 {index} 超出范围（1-{len(existing['records'])}）",
+        }
+
+    # 提取要删除的记录
+    removed = existing["records"].pop(index - 1)
+
+    if not existing["records"]:
+        # 删除后没有记录了，删掉文件
+        if file_path.exists():
+            file_path.unlink()
+    else:
+        content = build_bill_content(date_str, existing["records"])
+        file_path.write_text(content, encoding="utf-8")
+
+    total_expense = sum(r["amount"] for r in existing["records"] if r["type"] == "expense")
+    total_income = sum(r["amount"] for r in existing["records"] if r["type"] == "income")
+
+    result = {
+        "success": True,
+        "deleted": removed,
+        "date": date_str,
+        "file": str(file_path) if existing["records"] else "（已删除空文件）",
+        "file_exists": file_path.exists(),
+        "today_total_expense": round(total_expense, 2),
+        "today_total_income": round(total_income, 2),
+        "today_net": round(total_income - total_expense, 2),
+        "today_count": len(existing["records"]),
+    }
+
+    # 同步飞书删除
+    if sync_feishu and removed["type"] == "expense":
+        _check_feishu_config()
+        feishu_result = _delete_from_feishu(removed, date_str)
+        result["feishu_delete"] = feishu_result
+        if not feishu_result["success"]:
+            result["warning"] = f"飞书删除: {feishu_result.get('error')}"
+
+    return result
+
+
 # ── 查询功能 ──────────────────────────────────────────────────────────────────
 
 def list_records(date_str: str) -> dict:
@@ -445,8 +543,9 @@ def main():
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--list", action="store_true", help="列出账单")
     mode.add_argument("--summary", action="store_true", help="月度汇总")
+    mode.add_argument("--delete", action="store_true", help="删除某笔记录")
 
-    # 添加记录参数
+    # 添加/删除记录参数
     parser.add_argument("--amount", type=float, help="金额（元）")
     parser.add_argument("--type", choices=["expense", "income"],
                         dest="bill_type", help="类型：expense 支出 / income 收入")
@@ -454,6 +553,8 @@ def main():
     parser.add_argument("--note", default="", help="备注")
     parser.add_argument("--date", default=None,
                         help="日期 YYYY-MM-DD（默认今天）")
+    parser.add_argument("--index", type=int, default=None,
+                        help="记录序号（从 --list 输出中获取，用于 --delete）")
     parser.add_argument("--feishu", action="store_true", default=True,
                         help="同步到飞书多维表格（默认开启，加 --no-feishu 禁用）")
     parser.add_argument("--no-feishu", action="store_true",
@@ -468,6 +569,26 @@ def main():
     if args.list:
         date_str = validate_date(args.date) if args.date else get_today()
         result = list_records(date_str)
+        # 为每条记录添加序号
+        for i, r in enumerate(result["records"], 1):
+            r["index"] = i
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
+    # ── 模式：删除记录 ────────────────────────────────────────────────────────
+    if args.delete:
+        date_str = validate_date(args.date) if args.date else get_today()
+
+        if args.index is not None:
+            result = delete_record(date_str, args.index, sync_feishu=not args.no_feishu)
+        else:
+            # 无 --index 时先列出，输出提示
+            result = list_records(date_str)
+            for i, r in enumerate(result["records"], 1):
+                r["index"] = i
+            result["message"] = (
+                f"共 {len(result['records'])} 条记录，用 --delete --index N 指定要删除的序号"
+            )
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return
 
