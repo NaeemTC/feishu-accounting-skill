@@ -1,7 +1,7 @@
 ---
 name: feishu-accounting
 description: 飞书多维表格记账系统完整技能包。包含两步：1）运行 feishu-accounting-setup 引导用户完成飞书应用创建、多维表格搭建、凭证获取；2）使用 record_bill.py 进行日常记账（支持本地存储 + 飞书多维表格同步）。**同步使用永久有效的 Tenant Token。单表模式：所有记录写入明细表，通过「类型」字段区分支出和收入。**
-version: 1.3.3
+version: 1.3.4
 author: Naeem
 homepage: https://github.com/NaeemTC/feishu-accounting-skill
 tags: [feishu, bitable, accounting, setup, permissions]
@@ -272,6 +272,8 @@ feishu-accounting/
 | `.env` 中 FEISHU_APP_ID 没生效，仍用了父 shell 的旧值 | `os.environ.setdefault()` 不覆盖已有变量 | `.env` 加载改用直接赋值 `os.environ[k] = v` |
 | **APK 端：收入记录混入支出图表/明细列表** | `catSummaryFromDetail()` 和 `getDashRecords()` 没按 FI.type 过滤收入 | 添加 `if(type==='收入')continue;`（参见 `incomeCatSummaryFromDetail` 的写法） |
 | **重装 skill 时把旧 .env 带了过去** | 备份恢复操作保留旧属性（如已不用的 SUMMARY_TABLE_ID） | 全新安装时不应备份旧 .env，让用户重新走 Setup 流程获取新凭证 |
+| **income 记录写飞书后分类变成「其它」** | `FEISHU_CATEGORY_MAP` 中 `工资/奖金/兼职/投资` 映射为 `"其它"`（双表时代残留，收入只写汇总表不需要细分类） | 单表下收入分类应映射自身：`"工资": "工资"`，同步更新 `setup_bitable.py` 确保分类字段包含这些选项 |
+| **APK 端收入分类「其他」匹配不上飞书「其它」** | 飞书分类字段选项名是 `"其它"`（⺮它），但 APK 的 `INCOME_CATS` / `INC_COLORS` / 回退逻辑用了 `"其他"`（⺮他）。姓不同，indexOf 返回 -1 全部归入「其他」 | 全部统一为 `"其它"`：`INCOME_CATS`、`INC_COLORS` 键名、`incomeCatSummaryFromDetail` 回退值，三处一起改 |
 
 ## 🔧 APK 开发与维护
 
@@ -279,11 +281,21 @@ feishu-accounting/
 
 本技能涉及 GitHub 仓库 `NaeemTC/feishu-accounting-skill` 的代码维护。**所有 git 操作必须遵守以下规则：**
 
+> ⚠️ **数据源可控，不加防御代码**：`record_bill.py` 是唯一的数据写入入口，`amount` 字段类型固定为 number。APK 端无需加 `parseFloat` 防御，所有字段类型都由你控制的脚本确定，不会变。不要加无意义的防御代码。
+
+**有关数据源确定性的重要原则：** `record_bill.py` 是唯一写入飞书多维表格的脚本，因此 `amount` 字段的类型始终是 number（来自脚本中的 `amount: float` 参数），`文本`、`月份` 字段始终是 string，`分类`、`类型` 是 single-select（返回数组）。APK 端读取时无需对字段类型做冗余防御（如 `parseFloat`），因为数据管道是封闭、可控的。如需改变字段类型，改 `record_bill.py` 并同时更新 APK 端 `FI` 映射即可。
+
+**改动前必须先列清单让用户确认**：动手改任何代码之前，必须先列出要改的文件和具体改动（增/删/改哪里），让用户点头再动手。不能「先改再说」。这条规则在 commit/push/release 前同样适用。
+
+**只改根因文件，不改 collateral**：定位到一个 bug 后，只改导致 bug 的根因文件。不要顺手改其他文件中「看起来也对但跟这个 bug 无关」的代码。比如：`FEISHU_CATEGORY_MAP` 映射错了导致收入分类变「其它」，那就只改 `record_bill.py`。`dist/index.html` 的 `INCOME_CATS` / `INC_COLORS` 虽然跟分类相关，但在这个 bug 里不是根因，不动。
+
 1. **任何 commit / push / tag / release 操作前，必须先问用户确认**
 2. 用户说「改了 APK 要先发测试」→ 先 build APK 发给用户测，确认无误再推 git
 3. github-repo-management 的审计清单（token 泄漏、硬编码路径等）必须过一遍
 4. 版本号三处同步：`dist/index.html` 的 `APP_VERSION` + `android/app/build.gradle` 的 `versionName/versionCode` + `SKILL.md` 的 frontmatter
 5. Release 上传 APK 固定命名 `app-release.apk`，使 latest 链接永久有效
+6. **keystore 密码不得硬编码在 build.gradle 中** — 移入 `android/keystore.properties`，`.gitignore` 排除。提供 `keystore.properties.example` 模板。这一步在发布前必须检查
+7. **ClawHub 同步** — GitHub 发布后，`clawhub publish ~/.hermes/skills/feishu-accounting --slug feishu-accounting --name "个人记账with仪表盘app" --version X.Y.Z --changelog "..."`。ClawHub 和 GitHub 是独立的，不同步
 
 ### 常见 APK 端 Bug 模式
 
@@ -292,7 +304,10 @@ feishu-accounting/
 | 收入记录出现在支出饼图/消费明细/日趋势图中 | `catSummaryFromDetail()` 和 `getDashRecords()` 遍历 detailRecords 时没按 `FI.type` 过滤 | 添加 `var type=r[FI.type]||''; if(Array.isArray(type))type=type[0]||''; if(type==='收入')continue;` |
 | 新安装 APK 提示「正在连接飞书...」无限转圈 | **① 旧版 localStorage 存了过期凭证** — 新应用 ID/Secret 不对应 | 错误页点「重新配置」按钮清除 localStorage，或手动填写新凭证 |
 | | **② JS 声明顺序崩溃（更致命）** — `var DEFAULT_CATS=ALL_CATS.slice()` 写在 `var ALL_CATS=[...]` 之前，`ALL_CATS` 未赋值导致 `undefined.slice()` 抛出 TypeError，脚本在加载期即中断，`init()` 永不执行，线上 spinner 永远转 | 确保 `ALL_CATS` 定义在 `DEFAULT_CATS` 之前。调试方法：用 `browser_console` 看是否有 `Uncaught TypeError`（脚本加载期错误不会被 Promise.catch 捕获） |
+| 检查更新按钮点了没反应/一直转 | **① fetch 回调没调 `.json()`** — 返回的是 Response 对象，`d.tag_name` 为 undefined，条件判断永不通过 | 加 `.then(r=>r.json())` 解析 JSON |
+| | **② 无超时保护** — 请求挂起时 spinner 无限转 | 加 `AbortController` + 10 秒超时，超时显示「检查更新失败，请稍后重试」 |
 | 主题切换后图表瞬间消失 | `applyTheme` 中 dispose/recreate 图表无过渡 | 已修复：render 后对 chart 容器加 `.chart-fade` 动画类 |
+| 所有图表/卡片按月查看全空，日趋势/明细永远「暂无数据」 | `var FI` 字段索引映射不对应飞书 API 返回的数组顺序。实际数组为 `[ID,文本,金额,分类,类型,月份]`（按 field_id 字母序），但代码写成了 `{text:0,month:1}`（实际 text 在 index 1，month 在 index 5） | 调 API 验证数组顺序，设 `FI={text:1,month:5,amount:2,category:3,type:4}`。注意自动编号字段占用 index 0，单选字段返回 `[值]` 数组。详见 `references/feishu-base-api-pitfalls.md` 第6节 |
 
 ### UI 风格约定
 
