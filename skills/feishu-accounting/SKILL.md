@@ -202,7 +202,7 @@ python3 scripts/record_bill.py --summary --month 2026-05
 1. 用 vision 模型看图识别金额
 2. 直接按识别结果执行记账命令，不需要询问用户确认
 
-### 数据管理（查看 / 删除重复记录）
+### 数据管理（查看 / 删除记录）
 
 **查看记录：**
 ```bash
@@ -218,7 +218,7 @@ python3 scripts/record_bill.py --summary --month 2026-05
 
 `--list` 输出中每条记录有一个 `index` 字段（1起算），用于删除定位。
 
-**删除重复记录：**
+**删除记录：**
 ```bash
 # 删除指定日期的第 N 条记录（同时从本地文件和飞书明细表移除）
 python3 scripts/record_bill.py --delete --date 2026-05-22 --index 2
@@ -279,13 +279,5 @@ feishu-accounting/
 | `FEISHU_DETAIL_TABLE_ID` | 明细表 ID（单表，含类型字段区分收支） | `tblxxxxxxxxxxxxxxxx` |
 
 > **无需 User Access Token**：record_bill.py 使用永久有效的 Tenant Token（自动从 App ID + Secret 获取），不再有 7 天过期问题。
-
-### ⚠️ 读取/删除飞书记录需要 `bitable:app:readonly` 权限
-
-飞书 base/v3 API 写记录不查权限，但读记录和删记录需要 `bitable:app:readonly` 或 `bitable:app` 权限。
-应用创建后默认没开这个权限，会导致删除操作报 `91402 NOTEXIST` 或读取失败。
-
-开通方式：运行 `apply_permissions.py` 生成授权链接，用户点确认即可。
-（这个权限不影响写入，写入走的是另一个权限集。）
 
 
