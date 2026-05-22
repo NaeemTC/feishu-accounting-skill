@@ -114,7 +114,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .ch .box{height:180px}
 .ch-full{grid-column:1/-1}
 .ch-full .box{height:200px}
-.ch-pie{grid-column:1/-1}
+.ch-pie{grid-column:1/-1;padding-right:3px}
 .ch-pie .box{height:220px}
 .section-title{padding:16px 12px 8px;font-size:13px;font-weight:600;color:var(--dim);transition:color .35s}
 .details{padding:0 12px}
@@ -251,6 +251,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <span class="s-row-lbl">📊 收入分类饼图</span>
         <label class="switch"><input type="checkbox" id="sett-inc-toggle"><span class="slider"></span></label>
       </div>
+      <div class="s-row" id="sett-legend">
+        <span class="s-row-lbl">🏷 饼图图例</span>
+        <label class="switch"><input type="checkbox" id="sett-legend-toggle"><span class="slider"></span></label>
+      </div>
       <div class="s-row" id="sett-upd">
         <span class="s-row-lbl">⬆ 检查更新</span>
         <span class="s-upd-sub" id="sett-ver">v</span>
@@ -344,6 +348,8 @@ var DEFAULT_CATS=ALL_CATS.slice();
 var INCOME_CATS=['工资','奖金','兼职','投资','其他'];
 var INC_COLORS={工资:'#00c853',奖金:'#ffd600',兼职:'#4facfe',投资:'#ff6b6b',其他:'#868e96'};
 var showIncomePie=false;
+var showLegend=true;
+var legendDeselected={};
 var catTabActive='exp';
 var THEMES={dark:{tooltipBg:'#1a1a2e',tooltipBorder:'#2a2a4a',tooltipText:'#e0e0e0',axisLabel:'#888',splitLine:'#222',axisLine:'#2a2a4a',yLabel:'#ddd',barLabel:'#aaa',pieLabel:'#aaa',labelLine:'#555',itemBorder:'#0f0f1a'},light:{tooltipBg:'#ffffff',tooltipBorder:'#ddd6cc',tooltipText:'#3d3a36',axisLabel:'#9e9a95',splitLine:'#e8e2d8',axisLine:'#ddd6cc',yLabel:'#3d3a36',barLabel:'#9e9a95',pieLabel:'#7a7670',labelLine:'#ccc',itemBorder:'#fff'}};
 var activeTheme=localStorage.getItem('fa_theme')||'light';
@@ -356,7 +362,7 @@ var enabledIncCats=[];
 var isTotalMode=false;
 var detailPage=0;
 var GITHUB_REPO='NaeemTC/feishu-accounting-skill';
-var APP_VERSION='1.3.4';
+var APP_VERSION='1.3.5';
 var PAGE_SIZE=15;
 var pieChart=null,incPieChart=null,barChart=null,lineChart=null,hbarChart=null;
 var cachedToken='',cachedTokenExp=0;
@@ -393,6 +399,10 @@ function loadConfig(){
   else enabledCats=DEFAULT_CATS.slice();
   var sp=localStorage.getItem('fa_inc_pie');
   showIncomePie=sp==='1';
+  var sl=localStorage.getItem('fa_show_legend');
+  if(sl!==null)showLegend=sl==='1';
+  var ld=localStorage.getItem('fa_legend_deselected');
+  if(ld){try{legendDeselected=JSON.parse(ld)}catch(e){legendDeselected={}}}
   var ic=localStorage.getItem('fa_inc_cats');
   if(ic){try{enabledIncCats=JSON.parse(ic);if(!enabledIncCats.length)throw 1}catch(e){enabledIncCats=INCOME_CATS.slice()}}
   else enabledIncCats=INCOME_CATS.slice();
@@ -596,21 +606,33 @@ function renderPie(cats){
     pieChart.setOption({title:{text:'暂无数据',left:'center',top:'center',textStyle:{color:CUR_THEME.axisLabel,fontSize:13}}});
     return;
   }
+  var pieCenter=showLegend?['38%','52%']:['50%','52%'];
+  var legendSelected={};
+  for(var i=0;i<cats.length;i++){legendSelected[cats[i].name]=true}
+  if(!isTotalMode){for(var name in legendDeselected){if(legendDeselected[name])legendSelected[name]=false}}
   pieChart.setOption({
     backgroundColor:'transparent',
     title:{show:false},
     tooltip:{trigger:'item',formatter:function(p){return p.name+': ¥'+p.value.toFixed(2)+' ('+p.percent+'%)'},backgroundColor:CUR_THEME.tooltipBg,borderColor:CUR_THEME.tooltipBorder,textStyle:{color:CUR_THEME.tooltipText,fontSize:12}},
-    legend:{show:true,orient:'vertical',right:'4%',top:'middle',itemGap:6,textStyle:{color:CUR_THEME.pieLabel,fontSize:10}},
+    legend:{show:showLegend,type:'scroll',orient:'vertical',right:0,top:'middle',itemGap:6,textStyle:{color:CUR_THEME.pieLabel,fontSize:10},selected:legendSelected},
     series:[{
-      type:'pie',radius:['28%','62%'],center:['38%','52%'],
+      type:'pie',radius:['28%','62%'],center:pieCenter,
       avoidLabelOverlap:true,
       itemStyle:{borderRadius:5,borderColor:CUR_THEME.itemBorder,borderWidth:2},
       label:{show:true,formatter:'{b}\n{d}%',fontSize:11,color:CUR_THEME.pieLabel,lineHeight:15},
-      labelLine:{lineStyle:{color:CUR_THEME.labelLine},length:8,length2:10},
+      labelLine:{lineStyle:{color:CUR_THEME.labelLine},length:16,length2:10},
       emphasis:{label:{show:true,fontSize:13,fontWeight:'bold'}},
       data:cats.map(function(c){return{name:c.name,value:Math.round(c.amount*100)/100,itemStyle:{color:c.color}}})
     }]
   });
+  if(!pieChart._legendBound){
+    pieChart.on('legendselectchanged',function(params){
+      legendDeselected={};
+      for(var n in params.selected){if(!params.selected[n])legendDeselected[n]=true}
+      localStorage.setItem('fa_legend_deselected',JSON.stringify(legendDeselected));
+    });
+    pieChart._legendBound=true;
+  }
 }
 
 function renderHBar(cats){
@@ -702,21 +724,33 @@ function renderIncomePie(cats){
     incPieChart.setOption({title:{text:'暂无收入数据',left:'center',top:'center',textStyle:{color:CUR_THEME.axisLabel,fontSize:13}}});
     return;
   }
+  var pieCenter=showLegend?['38%','52%']:['50%','52%'];
+  var legendSelected={};
+  for(var i=0;i<cats.length;i++){legendSelected[cats[i].name]=true}
+  if(!isTotalMode){for(var name in legendDeselected){if(legendDeselected[name])legendSelected[name]=false}}
   incPieChart.setOption({
     backgroundColor:'transparent',
     title:{show:false},
     tooltip:{trigger:'item',formatter:function(p){return p.name+': ¥'+p.value.toFixed(2)+' ('+p.percent+'%)'},backgroundColor:CUR_THEME.tooltipBg,borderColor:CUR_THEME.tooltipBorder,textStyle:{color:CUR_THEME.tooltipText,fontSize:12}},
-    legend:{show:true,orient:'vertical',right:'4%',top:'middle',itemGap:6,textStyle:{color:CUR_THEME.pieLabel,fontSize:10}},
+    legend:{show:showLegend,type:'scroll',orient:'vertical',right:0,top:'middle',itemGap:6,textStyle:{color:CUR_THEME.pieLabel,fontSize:10},selected:legendSelected},
     series:[{
-      type:'pie',radius:['28%','62%'],center:['38%','52%'],
+      type:'pie',radius:['28%','62%'],center:pieCenter,
       avoidLabelOverlap:true,
       itemStyle:{borderRadius:5,borderColor:CUR_THEME.itemBorder,borderWidth:2},
       label:{show:true,formatter:'{b}\n{d}%',fontSize:11,color:CUR_THEME.pieLabel,lineHeight:15},
-      labelLine:{lineStyle:{color:CUR_THEME.labelLine},length:8,length2:10},
+      labelLine:{lineStyle:{color:CUR_THEME.labelLine},length:16,length2:10},
       emphasis:{label:{show:true,fontSize:13,fontWeight:'bold'}},
       data:cats.map(function(c){return{name:c.name,value:Math.round(c.amount*100)/100,itemStyle:{color:c.color}}})
     }]
   });
+  if(!incPieChart._legendBound){
+    incPieChart.on('legendselectchanged',function(params){
+      legendDeselected={};
+      for(var n in params.selected){if(!params.selected[n])legendDeselected[n]=true}
+      localStorage.setItem('fa_legend_deselected',JSON.stringify(legendDeselected));
+    });
+    incPieChart._legendBound=true;
+  }
 }
 function renderDetails(month){
   var recs=getDashRecords(month);
@@ -923,6 +957,7 @@ function closeOverlay(id,unlock,cb){
 document.getElementById('btn-sett').addEventListener('click',function(){
   document.getElementById('sett-ver').textContent='v'+APP_VERSION;
   document.getElementById('sett-inc-toggle').checked=showIncomePie;
+  document.getElementById('sett-legend-toggle').checked=showLegend;
   renderCatSettings();
   showSett();
 });
@@ -934,6 +969,13 @@ document.getElementById('sett-inc-toggle').addEventListener('change',function(){
   if(pieChart){pieChart.dispose();pieChart=null}
   if(incPieChart){incPieChart.dispose();incPieChart=null}
   if(hbarChart){hbarChart.dispose();hbarChart=null}
+  render();
+});
+document.getElementById("sett-legend-toggle").addEventListener("change",function(){
+  showLegend=this.checked;
+  localStorage.setItem("fa_show_legend",showLegend?"1":"0");
+  if(pieChart){pieChart.dispose();pieChart=null}
+  if(incPieChart){incPieChart.dispose();incPieChart=null}
   render();
 });
 document.getElementById('sett-overlay').addEventListener('click',function(e){
