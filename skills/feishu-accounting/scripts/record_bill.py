@@ -232,67 +232,95 @@ def add_record(amount: float, bill_type: str, category: str,
 
 
 def _delete_from_feishu(record: dict, date_str: str) -> dict:
-    """从飞书明细表删除匹配的记录（通过文本+金额匹配）"""
+    """
+    从飞书明细表删除匹配的记录。
+    通过【文本前半段日期 + 金额 + 类型】三重校验定位，不依赖备注字段。
+    - 找到 1 条匹配 → 删除并返回 record_id
+    - 找到 0 条 → 警告（本地有记录但飞书找不到，可能已被手动删除）
+    - 找到多条 → 警告（数据不一致，拒绝删除）
+    """
     try:
         token = _get_tenant_token()
-        target_text = f"{date_str} {record['time']}{record['note']}"
-        target_amount = record['amount']
+        target_date = date_str[:10]  # "YYYY-MM-DD"
+        target_amount = record["amount"]
+        target_type = record.get("type_label", "")  # '支出' 或 '收入'
         base = FEISHU_BASE_TOKEN
         tbl = FEISHU_DETAIL_TABLE_ID
 
-        # 获取字段映射
+        # 获取字段 ID 映射
         url_fields = (f"https://open.feishu.cn/open-apis/base/v3/bases/{base}"
                       f"/tables/{tbl}/fields")
         req_fields = urllib.request.Request(url_fields, headers={"Authorization": f"Bearer {token}"})
         with urllib.request.urlopen(req_fields, timeout=15) as resp:
             fields_data = json.loads(resp.read())
-
         field_map = {}
         for f in fields_data.get("data", {}).get("fields", []):
             field_map[f["name"]] = f["id"]
 
+        amount_fid = field_map.get("金额")
+        type_fid = field_map.get("类型")
+        text_fid = field_map.get("文本")
+        if not all([amount_fid, type_fid, text_fid]):
+            return {"success": False, "error": "飞书字段映射失败：金额/类型/文本"}
+
         # 翻页搜索匹配记录
         offset = 0
+        candidates = []
         while True:
             url = (f"https://open.feishu.cn/open-apis/base/v3/bases/{base}"
                    f"/tables/{tbl}/records?page_size=100&offset={offset}")
             req = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
             with urllib.request.urlopen(req, timeout=15) as resp:
                 data = json.loads(resp.read())
-
             field_ids = data["data"].get("field_id_list", [])
             records = data["data"]["data"]
             record_ids = data["data"]["record_id_list"]
             if not records:
                 break
 
-            text_idx = amount_idx = None
+            amount_idx = type_idx = text_idx = None
             for i, fid in enumerate(field_ids):
-                if fid == field_map.get("文本", ""):
-                    text_idx = i
-                elif fid == field_map.get("金额", ""):
+                if fid == amount_fid:
                     amount_idx = i
+                elif fid == type_fid:
+                    type_idx = i
+                elif fid == text_fid:
+                    text_idx = i
 
-            if text_idx is None or amount_idx is None:
-                return {"success": False, "error": "飞书字段映射失败"}
+            if amount_idx is None or type_idx is None or text_idx is None:
+                return {"success": False, "error": "飞书字段索引定位失败"}
 
             for i, rec in enumerate(records):
-                if len(rec) > max(text_idx, amount_idx):
-                    text_val = str(rec[text_idx]) if rec[text_idx] else ""
+                if len(rec) > max(amount_idx, type_idx, text_idx):
                     amount_val = rec[amount_idx] if rec[amount_idx] else 0
-                    if text_val == target_text and abs(float(amount_val) - target_amount) < 0.01:
-                        rid = record_ids[i]
-                        del_url = (f"https://open.feishu.cn/open-apis/base/v3/bases/{base}"
-                                   f"/tables/{tbl}/records/{rid}")
-                        del_req = urllib.request.Request(del_url, method="DELETE",
-                                                         headers={"Authorization": f"Bearer {token}"})
-                        with urllib.request.urlopen(del_req, timeout=15) as resp:
-                            del_r = json.loads(resp.read())
-                        if del_r.get("code") == 0:
-                            return {"success": True, "record_id": rid}
-                        return {"success": False, "error": f"飞书删除失败: {del_r.get('msg')}"}
+                    type_val = str(rec[type_idx]) if rec[type_idx] else ""
+                    text_val = str(rec[text_idx]) if rec[text_idx] else ""
+                    rec_date = text_val[:10] if text_val else ""  # 从文本前半段取日期
+                    if (abs(float(amount_val) - target_amount) < 0.01
+                            and type_val == target_type
+                            and rec_date == target_date):
+                        candidates.append(record_ids[i])
+
+            if len(records) < 100:
+                break
             offset += len(records)
-        return {"success": False, "error": "飞书未找到匹配记录"}
+
+        if len(candidates) == 0:
+            return {"success": False, "error": "飞书未找到匹配记录（可能被手动删除）"}
+        if len(candidates) > 1:
+            return {"success": False, "error": f"飞书找到 {len(candidates)} 条匹配记录（日期+金额+类型），数据不一致，拒绝删除"}
+
+        # 唯一匹配，删除
+        rid = candidates[0]
+        del_url = (f"https://open.feishu.cn/open-apis/base/v3/bases/{base}"
+                   f"/tables/{tbl}/records/{rid}")
+        del_req = urllib.request.Request(del_url, method="DELETE",
+                                         headers={"Authorization": f"Bearer {token}"})
+        with urllib.request.urlopen(del_req, timeout=15) as resp:
+            del_r = json.loads(resp.read())
+        if del_r.get("code") == 0:
+            return {"success": True, "record_id": rid}
+        return {"success": False, "error": f"飞书删除失败: {del_r.get('msg')}"}
     except Exception as e:
         return {"success": False, "error": str(e)}
 
@@ -335,7 +363,13 @@ def delete_record(date_str: str, index: int, sync_feishu: bool = True) -> dict:
         feishu_result = _delete_from_feishu(removed, date_str)
         result["feishu_delete"] = feishu_result
         if not feishu_result["success"]:
-            result["warning"] = f"飞书删除: {feishu_result.get('error')}"
+            err = feishu_result.get("error", "")
+            if "多条匹配" in err or "数据不一致" in err:
+                # 飞书数据不一致，禁止删本地（否则无法再同步）
+                result["success"] = False
+                result["error"] = f"飞书数据不一致：{err}；本地未删除，请手动对齐后再试"
+                return result
+            result["warning"] = f"飞书删除失败: {err}"
 
     return result
 
@@ -346,7 +380,8 @@ def list_records(date_str: str) -> dict:
     """列出指定日期的所有账单"""
     file_path = bill_file_path(date_str)
     data = parse_bill_file(file_path)
-    return {"success": True, "date": date_str, "records": data["records"],
+    records = [{"index": i + 1, **r} for i, r in enumerate(data["records"])]
+    return {"success": True, "date": date_str, "records": records,
             "total_expense": round(data["total_expense"], 2),
             "total_income": round(data["total_income"], 2),
             "net": round(data["total_income"] - data["total_expense"], 2)}
@@ -397,11 +432,11 @@ def main():
     parser.add_argument("--date", default=get_today(), help="日期 YYYY-MM-DD")
     parser.add_argument("--feishu", action="store_true", default=True,
                         help="同步飞书（默认开启）")
-    parser.add_argument("--no-feishu", action="store_false", dest="feishu",
-                        help="禁用飞书同步，仅写本地")
     parser.add_argument("--list", action="store_true", help="列出当日账单")
     parser.add_argument("--summary", action="store_true", help="月度汇总")
     parser.add_argument("--month", help="汇总月份 YYYY-MM（默认本月）")
+    parser.add_argument("--delete", action="store_true", help="删除记录（需配合 --date 和 --index）")
+    parser.add_argument("--index", type=int, help="要删除的记录序号（配合 --delete 使用，1起算）")
     args = parser.parse_args()
 
     if args.summary:
@@ -412,6 +447,13 @@ def main():
 
     if args.list:
         result = list_records(args.date)
+        print(json.dumps(result, ensure_ascii=False))
+        return
+
+    if args.delete:
+        if not args.index:
+            parser.error("删除记录需要 --index 参数指定序号（1起算）")
+        result = delete_record(args.date, args.index, sync_feishu=args.feishu)
         print(json.dumps(result, ensure_ascii=False))
         return
 

@@ -180,7 +180,6 @@ FEISHU_BASE_TOKEN=xxx FEISHU_DETAIL_TABLE_ID=xxx \
 | `--note` | | 备注 |
 | `--date` | | 日期 YYYY-MM-DD，默认今天 |
 | `--feishu` | | 同步飞书（默认开启） |
-| `--no-feishu` | | 禁用飞书同步，仅写本地 |
 
 > **⚠️ 单表模式**：支出和收入均写入同一张明细表，通过「类型」字段区分。App 端按类型字段分组聚合计算月度收支。
 
@@ -202,6 +201,30 @@ python3 scripts/record_bill.py --summary --month 2026-05
 用户发送账单图片（无文字）时：
 1. 用 vision 模型看图识别金额
 2. 直接按识别结果执行记账命令，不需要询问用户确认
+
+### 数据管理（查看 / 删除重复记录）
+
+**查看记录：**
+```bash
+# 列出当日账单（含序号，用于定位要删除的记录）
+python3 scripts/record_bill.py --list
+
+# 列出指定日期账单
+python3 scripts/record_bill.py --list --date 2026-05-22
+
+# 月度汇总
+python3 scripts/record_bill.py --summary --month 2026-05
+```
+
+`--list` 输出中每条记录有一个 `index` 字段（1起算），用于删除定位。
+
+**删除重复记录：**
+```bash
+# 删除指定日期的第 N 条记录（同时从本地文件和飞书明细表移除）
+python3 scripts/record_bill.py --delete --date 2026-05-22 --index 2
+```
+
+> **注意**：删除操作会同时从本地 `bills/YYYY-MM-DD.md` 和飞书明细表移除记录，**不可撤销**，请先确认 index 序号正确。
 
 ### 分类关键词（AI 解析参考）
 
@@ -257,6 +280,12 @@ feishu-accounting/
 
 > **无需 User Access Token**：record_bill.py 使用永久有效的 Tenant Token（自动从 App ID + Secret 获取），不再有 7 天过期问题。
 
----
+### ⚠️ 读取/删除飞书记录需要 `bitable:app:readonly` 权限
+
+飞书 base/v3 API 写记录不查权限，但读记录和删记录需要 `bitable:app:readonly` 或 `bitable:app` 权限。
+应用创建后默认没开这个权限，会导致删除操作报 `91402 NOTEXIST` 或读取失败。
+
+开通方式：运行 `apply_permissions.py` 生成授权链接，用户点确认即可。
+（这个权限不影响写入，写入走的是另一个权限集。）
 
 

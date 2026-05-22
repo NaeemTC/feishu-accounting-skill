@@ -51,6 +51,8 @@ REQUIRED_SCOPES = [
     "base:record:delete",
     "base:view:read",
     "base:view:write_only",
+    "bitable:app:readonly",
+    "bitable:app",
 ]
 
 
