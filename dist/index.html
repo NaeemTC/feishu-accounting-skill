@@ -356,7 +356,7 @@ var enabledIncCats=[];
 var isTotalMode=false;
 var detailPage=0;
 var GITHUB_REPO='NaeemTC/feishu-accounting-skill';
-var APP_VERSION='1.3.3';
+var APP_VERSION='1.3.4';
 var PAGE_SIZE=15;
 var pieChart=null,incPieChart=null,barChart=null,lineChart=null,hbarChart=null;
 var cachedToken='',cachedTokenExp=0;
@@ -600,9 +600,9 @@ function renderPie(cats){
     backgroundColor:'transparent',
     title:{show:false},
     tooltip:{trigger:'item',formatter:function(p){return p.name+': ¥'+p.value.toFixed(2)+' ('+p.percent+'%)'},backgroundColor:CUR_THEME.tooltipBg,borderColor:CUR_THEME.tooltipBorder,textStyle:{color:CUR_THEME.tooltipText,fontSize:12}},
-    legend:{show:false},
+    legend:{show:true,orient:'vertical',right:'4%',top:'middle',itemGap:6,textStyle:{color:CUR_THEME.pieLabel,fontSize:10}},
     series:[{
-      type:'pie',radius:['28%','62%'],center:['50%','52%'],
+      type:'pie',radius:['28%','62%'],center:['38%','52%'],
       avoidLabelOverlap:true,
       itemStyle:{borderRadius:5,borderColor:CUR_THEME.itemBorder,borderWidth:2},
       label:{show:true,formatter:'{b}\n{d}%',fontSize:11,color:CUR_THEME.pieLabel,lineHeight:15},
@@ -706,9 +706,9 @@ function renderIncomePie(cats){
     backgroundColor:'transparent',
     title:{show:false},
     tooltip:{trigger:'item',formatter:function(p){return p.name+': ¥'+p.value.toFixed(2)+' ('+p.percent+'%)'},backgroundColor:CUR_THEME.tooltipBg,borderColor:CUR_THEME.tooltipBorder,textStyle:{color:CUR_THEME.tooltipText,fontSize:12}},
-    legend:{show:false},
+    legend:{show:true,orient:'vertical',right:'4%',top:'middle',itemGap:6,textStyle:{color:CUR_THEME.pieLabel,fontSize:10}},
     series:[{
-      type:'pie',radius:['28%','62%'],center:['50%','52%'],
+      type:'pie',radius:['28%','62%'],center:['38%','52%'],
       avoidLabelOverlap:true,
       itemStyle:{borderRadius:5,borderColor:CUR_THEME.itemBorder,borderWidth:2},
       label:{show:true,formatter:'{b}\n{d}%',fontSize:11,color:CUR_THEME.pieLabel,lineHeight:15},

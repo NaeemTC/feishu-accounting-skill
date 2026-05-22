@@ -293,7 +293,9 @@ def _delete_from_feishu(record: dict, date_str: str) -> dict:
             for i, rec in enumerate(records):
                 if len(rec) > max(amount_idx, type_idx, text_idx):
                     amount_val = rec[amount_idx] if rec[amount_idx] else 0
-                    type_val = str(rec[type_idx]) if rec[type_idx] else ""
+                    type_raw = rec[type_idx] if rec[type_idx] else ""
+                    # 单选框字段返回可能是列表 ['支出'] 或字符串 '支出'
+                    type_val = type_raw[0] if isinstance(type_raw, list) else str(type_raw)
                     text_val = str(rec[text_idx]) if rec[text_idx] else ""
                     rec_date = text_val[:10] if text_val else ""  # 从文本前半段取日期
                     if (abs(float(amount_val) - target_amount) < 0.01
@@ -326,7 +328,7 @@ def _delete_from_feishu(record: dict, date_str: str) -> dict:
 
 
 def delete_record(date_str: str, index: int, sync_feishu: bool = True) -> dict:
-    """删除指定日期的第 N 条记录，返回操作结果"""
+    """删除指定日期的第 N 条记录，返回操作结果。先删飞书，确认成功后再删本地。"""
     BILLS_DIR.mkdir(parents=True, exist_ok=True)
     file_path = bill_file_path(date_str)
     existing = parse_bill_file(file_path)
@@ -336,8 +338,26 @@ def delete_record(date_str: str, index: int, sync_feishu: bool = True) -> dict:
     if index < 1 or index > len(existing["records"]):
         return {"success": False, "error": f"序号 {index} 超出范围（1-{len(existing['records'])}）"}
 
-    removed = existing["records"].pop(index - 1)
+    # 先找到要删的记录（不动本地文件）
+    removed = existing["records"][index - 1]
 
+    # 先删飞书，确认成功后再动本地
+    feishu_result = None
+    if sync_feishu:
+        _check_feishu_config()
+        feishu_result = _delete_from_feishu(removed, date_str)
+        if not feishu_result["success"]:
+            err = feishu_result.get("error", "")
+            return {
+                "success": False,
+                "error": f"飞书删除失败：{err}；本地未删除",
+                "deleted": removed,
+                "date": date_str,
+                "feishu_delete": feishu_result,
+            }
+
+    # 飞书确认删除 → 现在删本地
+    existing["records"].pop(index - 1)
     if not existing["records"]:
         if file_path.exists():
             file_path.unlink()
@@ -356,21 +376,8 @@ def delete_record(date_str: str, index: int, sync_feishu: bool = True) -> dict:
         "today_net": round(total_income - total_expense, 2),
         "today_count": len(existing["records"]),
     }
-
-    # 同步飞书删除
-    if sync_feishu:
-        _check_feishu_config()
-        feishu_result = _delete_from_feishu(removed, date_str)
+    if feishu_result:
         result["feishu_delete"] = feishu_result
-        if not feishu_result["success"]:
-            err = feishu_result.get("error", "")
-            if "多条匹配" in err or "数据不一致" in err:
-                # 飞书数据不一致，禁止删本地（否则无法再同步）
-                result["success"] = False
-                result["error"] = f"飞书数据不一致：{err}；本地未删除，请手动对齐后再试"
-                return result
-            result["warning"] = f"飞书删除失败: {err}"
-
     return result
 
 

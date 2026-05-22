@@ -58,13 +58,13 @@ python3 scripts/apply_permissions.py \
   --app-secret "用户的AppSecret"
 ```
 
-脚本输出一个 **一键授权链接**，AI 直接把链接发给用户：
+脚本输出一个 **一键授权链接**，AI 直接把脚本输出的完整链接原样发给用户
 
-> 点击下方链接，所有记账需要的权限已经预选好了，你只需确认一次：
+> ⚠️ **AI 注意**：不要自己拼链接！必须运行 `apply_permissions.py`，取 stdout 里的链接，原样发给用户。链接里必须包含以下全部 19 个权限，一个不能少：
 >
-> 🔗 `https://open.feishu.cn/app/{appId}/auth?q=base:app:read,base:app:update,...&op_from=openapi&token_type=tenant`
+> `base:app:read,base:app:update,base:app:create,base:table:read,base:table:create,base:table:update,base:table:delete,base:field:read,base:field:create,base:field:update,base:field:delete,base:record:read,base:record:create,base:record:update,base:record:delete,base:view:read,base:view:write_only,bitable:app:readonly,bitable:app`
 >
-> 点击后 → 页面会列出所有需要的 base 权限 → 全选后点击 **「确认开通权限」** → 完成。
+> 用户点击链接 → 页面列出所有权限 → 全选后点击 **「确认开通权限」** → 完成。
 
 **然后 AI 调用** `scopes/apply` API 提交管理员审批申请。
 
